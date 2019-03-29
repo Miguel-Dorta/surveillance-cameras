@@ -36,11 +36,14 @@ func main() {
 			if err.Error() == "EOF" {
 				break
 			}
-			errCounter++
-			fmt.Printf("Error listing files [try %d of 10]: %s\n", errCounter, err.Error())
 
-			if errCounter >= 10 {
-				break
+			errCounter++
+
+			if errCounter > 10 {
+				fmt.Println("[FATAL] Error accumulation")
+				os.Exit(2)
+			} else {
+				fmt.Printf("Error listing files [try %d of 10]: %s\n", errCounter, err.Error())
 			}
 		}
 
@@ -48,5 +51,4 @@ func main() {
 			fmt.Printf("%s @ IsDir? %t\n", fi.Name(),fi.IsDir())
 		}
 	}
-	os.Exit(errCounter)
 }

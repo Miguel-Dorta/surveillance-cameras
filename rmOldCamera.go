@@ -1,88 +1,117 @@
 package main
 
 import (
-	"os"
-	"time"
-	"strconv"
 	"fmt"
-)
-
-const (
-	PS string = string(os.PathSeparator)
+	"os"
+	"path/filepath"
+	"strconv"
+	"time"
 )
 
 func main() {
+	if len(os.Args) != 3 {
+		fmt.Println("Usage:    ./rmOldCamera <path> <days-to-preserve>")
+		os.Exit(1)
+	}
+
 	path := os.Args[1]
-	preserveDays, err := strconv.Atoi(os.Args[2])
-	checkError(err, 1)
+	daysToPreserve, err := strconv.Atoi(os.Args[2])
+	if err != nil {
+		fmt.Printf("Error parsing number %s: %s\nIs it really a number?\n", os.Args[2], err.Error())
+		os.Exit(1)
+	}
+	dateToRm := time.Now().AddDate(0, 0, daysToPreserve * -1)
 
-	camList, err, debugNumber := getDirList(path, -1)
-	checkError(err, debugNumber)
-
-	dateToRm := time.Now().AddDate(0,0, preserveDays * -1)
-	yRm, mM, dRm := dateToRm.Date()
-	mRm := int(mM)
+	camList, err := listDir(path)
+	if err != nil {
+		fmt.Printf("Error reading directory \"%s\": %s\n", path, err.Error())
+		os.Exit(1)
+	}
 
 	for _, cam := range camList {
-		if cam.IsDir() {
-			camName := cam.Name()
-			camPath := path + PS + camName
+		if !cam.IsDir() {
+			continue
+		}
 
-			for y := 1970; y <= yRm; y++ {
-				yPath := camPath + PS + strconv.Itoa(y)
+		camPath := filepath.Join(path, cam.Name())
+		yearToRm := dateToRm.Year() // Save in var to avoid unnecessary function calls
+		for y := 1970; y <= yearToRm; y++ {
+			camYearPath := filepath.Join(camPath, strconv.Itoa(y))
 
-				for m := 1; m < 13; m++ {
-					if y != yRm || m <= mRm {
-						mPath := yPath + PS + fmt.Sprintf("%02d", m)
+			var monthToRm int
+			if y == yearToRm {
+				monthToRm = int(dateToRm.Month())
+			} else {
+				monthToRm = 12
+			}
 
-						for d := 1; d < 32; d++ {
-							if m != mRm || d < dRm {
-								dPath := mPath + PS + fmt.Sprintf("%02d", d)
+			for m := 1; m <= monthToRm; m++ {
+				camYearMonthPath := filepath.Join(camYearPath, strconv.Itoa(m))
 
-								dFile, err := os.Open(dPath)
-								checkError(err, 2)
-								for {
-									dlist, err := dFile.Readdir(1000)
-									if err != nil {
-										if err.Error() == "EOF" {
-											break;
-										}
-										checkError(err, 3)
-									}
-									for _, snap := range dlist {
-										err := os.Remove(dPath + PS + snap.Name())
-										checkError(err, 4)
-									}
+				var dayToRm int
+				if y == yearToRm && m == monthToRm {
+					dayToRm = dateToRm.Day()
+				} else {
+					dayToRm = 32 //31+1
+				}
+
+				for d := 1; d < dayToRm; d++ {
+					camYearMonthDayPath := filepath.Join(camYearMonthPath, strconv.Itoa(d))
+
+					// Open directory
+					f, err := os.Open(camYearMonthDayPath)
+					if err != nil {
+						if os.IsNotExist(err) {
+							continue
+						}
+						fmt.Printf("Error reading directory \"%s\": %s\nSkipping directory...\n", camYearMonthDayPath, err.Error())
+					}
+
+					errCounter := 0
+					for {
+						// Read next 1000 files
+						fileList, err := f.Readdir(1000)
+						if err != nil {
+							if err.Error() == "EOF" {
+								break
+							}
+
+							errCounter++
+							if errCounter > 9 {
+								fmt.Println("[SEVERE] Error accumulation. Skipping directory...")
+								errCounter = 0
+								break
+							} else {
+								fmt.Printf("[try %d of 10] Error reading directory \"%s\": %s\n", errCounter, camYearMonthDayPath, err.Error())
+								continue
+							}
+						}
+
+						// Remove files
+						for _, fileToRm := range fileList {
+							err = os.Remove(filepath.Join(camYearMonthDayPath, fileToRm.Name()))
+							if err != nil {
+								if os.IsNotExist(err) {
+									continue
 								}
-								dFile.Close()
-
-								fmt.Printf("\rCamera: %s - Date: %d/%02d/%02d", camName, y, m, d)
+								fmt.Printf("Error removing file \"%s\": %s\n", filepath.Join(camYearMonthDayPath, fileToRm.Name()), err.Error())
 							}
 						}
 					}
+					f.Close()
 				}
 			}
 		}
 	}
-	print("\n")
 }
 
-func getDirList(path string, filesToReturn int) ([]os.FileInfo, error, int) {
+func listDir(path string) (list []os.FileInfo, err error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, err, 101
+		return
 	}
 	defer f.Close()
-	list, err := f.Readdir(filesToReturn)
-	if err != nil {
-		return nil, err, 102
-	}
-	return list, nil, 0
-}
 
-func checkError(err error, debugNumber int) {
-	if err != nil {
-		fmt.Printf("\nError %v\n%v\n", err, debugNumber)
-		os.Exit(1)
-	}
+	list, err = f.Readdir(-1)
+	return
 }
