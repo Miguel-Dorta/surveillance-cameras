@@ -76,14 +76,14 @@ func main() {
 								break
 							}
 
-							errCounter++
-							if errCounter > 9 {
+							if errCounter < 10 {
+								errCounter++
+								fmt.Printf("[try %d of 10] Error reading directory \"%s\": %s\n", errCounter, camYearMonthDayPath, err.Error())
+								continue
+							} else {
 								fmt.Println("[SEVERE] Error accumulation. Skipping directory...")
 								errCounter = 0
 								break
-							} else {
-								fmt.Printf("[try %d of 10] Error reading directory \"%s\": %s\n", errCounter, camYearMonthDayPath, err.Error())
-								continue
 							}
 						}
 
