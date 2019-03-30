@@ -15,7 +15,8 @@ func main() {
 	if len(os.Args) == 2 {
 		path = os.Args[1]
 	} else {
-		path, err := os.Getwd()
+		var err error
+		path, err = os.Getwd()
 		if err != nil {
 			fmt.Printf("Error getting working directory: %s\nTry using ./listLargeDirs <absolutePath>\n", err.Error())
 			os.Exit(1)
