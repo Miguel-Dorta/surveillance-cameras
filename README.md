@@ -1,5 +1,5 @@
 # surveillance-cameras
-Scripts for embeded systems processing surveillance cameras' data
+Scripts for embedded systems processing surveillance cameras' data
 
 ### cameraSort.go
 Reads the content of the directory specified in the first argument (origin), takes all the files that starts with CAMIDyyyyMMdd (e.g. Interior20180217...) and puts them in destiny(second argument)/CAMID/yyyy/MM/dd
