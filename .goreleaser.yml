@@ -61,6 +61,27 @@ builds:
         goarch: arm
       - goos: windows
         goarch: arm64
+
+  - main: fetchImage.go
+    binary: fetchImage
+    goos:
+      - windows
+      - linux
+      - freebsd
+    goarch:
+      - amd64
+      - 386
+      - arm
+      - arm64
+    goarm:
+      - 5
+      - 6
+      - 7
+    ignore:
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
 archive:
   format: tar.gz
   format_overrides:

@@ -9,3 +9,6 @@ Read the content of the first argument (path), which is structured like [path/]C
 
 ### listLargeDirs.go
 Lists a large directory, not recursively, printing the result with the following format: FILENAME @ IsDir? [true-false]
+
+### fetchImage.go
+Every second requests the picture provided in the URL, login with the credentials (if provided) and saves it in PATH/CamName/YYYY/MM/DD/ as hh-mm-ss.extension
