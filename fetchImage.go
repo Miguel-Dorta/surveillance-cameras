@@ -43,7 +43,7 @@ func main() {
 
 		// If date changes, update dirPath
 		if now.Unix() >= tomorrow {
-			tomorrow = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).Add(time.Hour * 24).UTC().Unix()
+			tomorrow = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).Add(time.Hour * 24).Unix()
 			dirPath = filepath.Join(
 				path,
 				camName,
