@@ -10,7 +10,7 @@ import (
 var ErrIncorrectFormat = fmt.Errorf("incorrect format")
 
 func main() {
-	if len(os.Args) == 3 {
+	if len(os.Args) != 3 {
 		fmt.Println("Usage:    ./cameraSort <origin> <destiny>")
 		os.Exit(1)
 	}
