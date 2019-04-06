@@ -69,6 +69,12 @@ func main() {
 					fmt.Printf("Error copying %s to %s: %s\n", originPath, destinyPath, err.Error())
 					continue
 				}
+
+				err = os.Remove(originPath)
+				if err != nil {
+					fmt.Printf("Error removing %s from source: %s\n", originPath, err.Error())
+					continue
+				}
 			}
 		}
 	}
