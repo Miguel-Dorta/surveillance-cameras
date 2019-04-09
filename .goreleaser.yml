@@ -1,6 +1,6 @@
 builds:
-  - main: cameraSort.go
-    binary: cameraSort
+  - main: cmd/cameraSort/cameraSort.go
+    binary: bin/cameraSort
     goos:
       - windows
       - linux
@@ -20,8 +20,8 @@ builds:
       - goos: windows
         goarch: arm64
 
-  - main: listLargeDirs.go
-    binary: listLargeDirs
+  - main: cmd/listLargeDirs/listLargeDirs.go
+    binary: bin/listLargeDirs
     goos:
       - windows
       - linux
@@ -41,8 +41,8 @@ builds:
       - goos: windows
         goarch: arm64
         
-  - main: rmOldCamera.go
-    binary: rmOldCamera
+  - main: cmd/rmOldCamera/rmOldCamera.go
+    binary: bin/rmOldCamera
     goos:
       - windows
       - linux
@@ -62,8 +62,8 @@ builds:
       - goos: windows
         goarch: arm64
 
-  - main: fetchImage.go
-    binary: fetchImage
+  - main: cmd/fetchImage/fetchImage.go
+    binary: bin/fetchImage
     goos:
       - windows
       - linux
