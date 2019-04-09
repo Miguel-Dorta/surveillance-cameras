@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Miguel-Dorta/surveillance-cameras/internal"
 	"io"
 	"os"
 	"path/filepath"
@@ -9,9 +10,12 @@ import (
 	"time"
 )
 
+const USAGE = "<path> <days-to-preserve>"
+
 func main() {
+	internal.CheckSpecialArgs(os.Args, USAGE)
 	if len(os.Args) != 3 {
-		fmt.Printf("Usage:    %s <path> <days-to-preserve>\n", os.Args[0])
+		fmt.Printf("Usage:    %s %s (use -h for help)\n", os.Args[0], USAGE)
 		os.Exit(1)
 	}
 

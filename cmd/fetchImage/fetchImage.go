@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Miguel-Dorta/surveillance-cameras/internal"
 	"io"
 	"net/http"
 	"os"
@@ -9,9 +10,12 @@ import (
 	"time"
 )
 
+const USAGE = "<camera-name> <user-optional> <password-optional> <url> <path-destiny>"
+
 var camName, user, pass, url, path string
 
 func main() {
+	internal.CheckSpecialArgs(os.Args, USAGE)
 	if len(os.Args) == 6 {
 		camName = os.Args[1]
 		user = os.Args[2]
@@ -25,7 +29,7 @@ func main() {
 		user = ""
 		pass = ""
 	} else {
-		fmt.Printf("Usage:    %s <camera-name> <user> <password> <url> <path-destiny>\n  [user] and [password] are optional\n", os.Args[0])
+		fmt.Printf("Usage:    %s %s (use -h for help)\n", os.Args[0], USAGE)
 		os.Exit(1)
 	}
 

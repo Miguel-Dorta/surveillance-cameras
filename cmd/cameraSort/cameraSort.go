@@ -2,16 +2,19 @@ package main
 
 import (
 	"fmt"
+	"github.com/Miguel-Dorta/surveillance-cameras/internal"
 	"io"
 	"os"
 	"path/filepath"
 )
 
+const USAGE = "<origin> <destination>"
 var ErrIncorrectFormat = fmt.Errorf("incorrect format")
 
 func main() {
+	internal.CheckSpecialArgs(os.Args, USAGE)
 	if len(os.Args) != 3 {
-		fmt.Printf("Usage:    %s <origin> <destiny>\n", os.Args[0])
+		fmt.Printf("Usage:    %s %s (use -h for help)\n", os.Args[0], USAGE)
 		os.Exit(1)
 	}
 

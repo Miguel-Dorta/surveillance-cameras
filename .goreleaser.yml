@@ -1,6 +1,7 @@
 builds:
   - main: cmd/cameraSort/cameraSort.go
     binary: bin/cameraSort
+    ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - windows
       - linux
@@ -22,6 +23,7 @@ builds:
 
   - main: cmd/listLargeDirs/listLargeDirs.go
     binary: bin/listLargeDirs
+    ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - windows
       - linux
@@ -43,6 +45,7 @@ builds:
         
   - main: cmd/rmOldCamera/rmOldCamera.go
     binary: bin/rmOldCamera
+    ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - windows
       - linux
@@ -64,6 +67,7 @@ builds:
 
   - main: cmd/fetchImage/fetchImage.go
     binary: bin/fetchImage
+    ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - windows
       - linux
