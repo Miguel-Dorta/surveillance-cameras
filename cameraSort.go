@@ -29,7 +29,7 @@ func main() {
 	for {
 		list, err := f.Readdir(1000)
 		if err != nil {
-			if err.Error() == "EOF" {
+			if err == io.EOF {
 				break
 			}
 

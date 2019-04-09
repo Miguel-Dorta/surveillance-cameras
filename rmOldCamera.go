@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -72,7 +73,7 @@ func main() {
 						// Read next 1000 files
 						fileList, err := f.Readdir(1000)
 						if err != nil {
-							if err.Error() == "EOF" {
+							if err == io.EOF {
 								break
 							}
 
