@@ -25,7 +25,7 @@ func main() {
 		user = ""
 		pass = ""
 	} else {
-		fmt.Println("Usage:    <camera-name> <user> <password> <url> <path-destiny>\n  [user] and [password] are optional")
+		fmt.Printf("Usage:    %s <camera-name> <user> <password> <url> <path-destiny>\n  [user] and [password] are optional\n", os.Args[0])
 		os.Exit(1)
 	}
 

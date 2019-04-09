@@ -10,7 +10,7 @@ import (
 
 func main() {
 	if len(os.Args) != 3 {
-		fmt.Println("Usage:    ./rmOldCamera <path> <days-to-preserve>")
+		fmt.Printf("Usage:    %s <path> <days-to-preserve>\n", os.Args[0])
 		os.Exit(1)
 	}
 

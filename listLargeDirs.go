@@ -7,7 +7,7 @@ import (
 
 func main() {
 	if len(os.Args) > 2 {
-		fmt.Println("Usage:    ./listLargeDirs [path-optional]")
+		fmt.Printf("Usage:    %s [path-optional]\n", os.Args[0])
 		os.Exit(1)
 	}
 

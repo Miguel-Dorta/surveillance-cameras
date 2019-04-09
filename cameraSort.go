@@ -11,7 +11,7 @@ var ErrIncorrectFormat = fmt.Errorf("incorrect format")
 
 func main() {
 	if len(os.Args) != 3 {
-		fmt.Println("Usage:    ./cameraSort <origin> <destiny>")
+		fmt.Printf("Usage:    %s <origin> <destiny>\n", os.Args[0])
 		os.Exit(1)
 	}
 
