@@ -21,65 +21,41 @@ func main() {
 	origin := os.Args[1]
 	destiny := os.Args[2]
 
-	f, err := os.Open(origin)
-	if err != nil {
-		fmt.Printf("Error opening origin: %s\n", err.Error())
-		os.Exit(1)
-	}
-	defer f.Close()
+	err := internal.ForEachInDirectory(origin, func(fi os.FileInfo) error {
+		fiName := fi.Name()
+		if !fi.Mode().IsRegular() {
+			return nil
+		}
 
-	errCounter := 0
-	for {
-		list, err := f.Readdir(1000)
+		camId, y, m, d, err := getFileNameParts(fiName)
 		if err != nil {
-			if err == io.EOF {
-				break
-			}
-
-			if errCounter < 10 {
-				fmt.Printf("[try %d of 10] Error reading origin: %s\n", errCounter, err.Error())
-				errCounter++
-				continue
-			} else {
-				fmt.Println("[SEVERE] Error accumulation")
-				os.Exit(2)
-			}
+			return nil
 		}
 
-		for _, e := range list {
-			eName := e.Name()
-			if !e.Mode().IsRegular() {
-				continue
+		originPath := filepath.Join(origin, fiName)
+		destinyPath := filepath.Join(destiny, camId, y, m, d, fiName)
+
+		err = os.Rename(originPath, destinyPath)
+		if err != nil {
+			if _, ok := err.(*os.LinkError); !ok {
+				return fmt.Errorf("Error moving %s to %s: %s\n", originPath, destinyPath, err.Error())
 			}
 
-			camId, y, m, d, err := getFileNameParts(eName)
+			err = copyFileBetweenDisks(originPath, destinyPath)
 			if err != nil {
-				continue
+				return fmt.Errorf("Error copying %s to %s: %s\n", originPath, destinyPath, err.Error())
 			}
 
-			originPath := filepath.Join(origin, eName)
-			destinyPath := filepath.Join(destiny, camId, y, m, d, eName)
-
-			err = os.Rename(originPath, destinyPath)
+			err = os.Remove(originPath)
 			if err != nil {
-				if _, ok := err.(*os.LinkError); !ok {
-					fmt.Printf("Error moving %s to %s: %s\n", originPath, destinyPath, err.Error())
-					continue
-				}
-
-				err = copyFileBetweenDisks(originPath, destinyPath)
-				if err != nil {
-					fmt.Printf("Error copying %s to %s: %s\n", originPath, destinyPath, err.Error())
-					continue
-				}
-
-				err = os.Remove(originPath)
-				if err != nil {
-					fmt.Printf("Error removing %s from source: %s\n", originPath, err.Error())
-					continue
-				}
+				return fmt.Errorf("Error removing %s from source: %s\n", originPath, err.Error())
 			}
 		}
+		return nil
+	})
+	if err != nil {
+		fmt.Printf(":: Errors found:\n%s\n", err.Error())
+		os.Exit(1)
 	}
 }
 

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
-	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -63,47 +62,19 @@ func main() {
 				for d := 1; d < dayToRm; d++ {
 					camYearMonthDayPath := filepath.Join(camYearMonthPath, strconv.Itoa(d))
 
-					// Open directory
-					f, err := os.Open(camYearMonthDayPath)
+					err = internal.ForEachInDirectory(camYearMonthDayPath, func(fi os.FileInfo) error {
+						err = os.Remove(filepath.Join(camYearMonthDayPath, fi.Name()))
+						if err != nil && !os.IsNotExist(err) {
+							return fmt.Errorf("Error removing file \"%s\": %s\n", filepath.Join(camYearMonthDayPath, fi.Name()), err.Error())
+						}
+						return nil
+					})
 					if err != nil {
 						if os.IsNotExist(err) {
 							continue
 						}
-						fmt.Printf("Error reading directory \"%s\": %s\nSkipping directory...\n", camYearMonthDayPath, err.Error())
+						fmt.Printf(":: Errors found removing content of \"%s\"\n%s\n:: Skipping directory...\n", camYearMonthDayPath, err.Error())
 					}
-
-					errCounter := 0
-					for {
-						// Read next 1000 files
-						fileList, err := f.Readdir(1000)
-						if err != nil {
-							if err == io.EOF {
-								break
-							}
-
-							if errCounter < 10 {
-								errCounter++
-								fmt.Printf("[try %d of 10] Error reading directory \"%s\": %s\n", errCounter, camYearMonthDayPath, err.Error())
-								continue
-							} else {
-								fmt.Println("[SEVERE] Error accumulation. Skipping directory...")
-								errCounter = 0
-								break
-							}
-						}
-
-						// Remove files
-						for _, fileToRm := range fileList {
-							err = os.Remove(filepath.Join(camYearMonthDayPath, fileToRm.Name()))
-							if err != nil {
-								if os.IsNotExist(err) {
-									continue
-								}
-								fmt.Printf("Error removing file \"%s\": %s\n", filepath.Join(camYearMonthDayPath, fileToRm.Name()), err.Error())
-							}
-						}
-					}
-					f.Close()
 				}
 			}
 		}

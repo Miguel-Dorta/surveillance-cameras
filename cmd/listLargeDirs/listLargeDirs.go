@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
-	"io"
 	"os"
 )
 
@@ -28,33 +27,12 @@ func main() {
 		}
 	}
 
-	f, err := os.Open(path)
+	err := internal.ForEachInDirectory(path, func(fi os.FileInfo) error {
+		fmt.Printf("%s @ IsDir? %t\n", fi.Name(), fi.IsDir())
+		return nil
+	})
 	if err != nil {
-		fmt.Printf("Error opening directory: %s\n", err.Error())
+		fmt.Println(err.Error())
 		os.Exit(1)
-	}
-	defer f.Close()
-
-	errCounter := 0
-	for {
-		list, err := f.Readdir(1000)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-
-			errCounter++
-
-			if errCounter > 10 {
-				fmt.Println("[FATAL] Error accumulation")
-				os.Exit(2)
-			} else {
-				fmt.Printf("Error listing files [try %d of 10]: %s\n", errCounter, err.Error())
-			}
-		}
-
-		for _, fi := range list {
-			fmt.Printf("%s @ IsDir? %t\n", fi.Name(),fi.IsDir())
-		}
 	}
 }
