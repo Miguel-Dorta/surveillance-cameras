@@ -17,6 +17,8 @@ func CheckSpecialArgs(args []string, usage string) {
 			fmt.Println(Version)
 		} else if arg == "-h" || arg == "--help" {
 			fmt.Printf("Usage:    %s %s\n  -h, --help       Show this help text.\n  -V, --version    Display version and exits.\n", args[0], usage)
+		} else {
+			continue
 		}
 		os.Exit(0)
 	}
