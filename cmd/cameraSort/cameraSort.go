@@ -97,10 +97,32 @@ func copyFileBetweenDisks(origin, destiny string) (err error) {
 
 	destinyFile, err := os.Create(destiny)
 	if err != nil {
-		return
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("error creating destiny file: %s", err.Error())
+		}
+
+		// If it fails because there is not container folders, creates them
+		err := os.MkdirAll(getPathToFile(destiny), 0700)
+		if err != nil {
+			return fmt.Errorf("error creating container folders: %s", err.Error())
+		}
+
+		destinyFile, err = os.Create(destiny)
+		if err != nil {
+			return fmt.Errorf("error creating destiny file: %s", err.Error())
+		}
 	}
 	defer destinyFile.Close()
 
 	_, err = io.CopyBuffer(destinyFile, originFile, make([]byte, 100*1024))
 	return
+}
+
+func getPathToFile(path string) string {
+	for i := len(path) - 1; i > 0; i-- {
+		if path[i] == os.PathSeparator {
+			return path[:i]
+		}
+	}
+	return path
 }
