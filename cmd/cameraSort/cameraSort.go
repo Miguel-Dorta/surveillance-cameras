@@ -114,8 +114,15 @@ func copyFileBetweenDisks(origin, destiny string) (err error) {
 	}
 	defer destinyFile.Close()
 
-	_, err = io.CopyBuffer(destinyFile, originFile, make([]byte, 100*1024))
-	return
+	if _, err = io.CopyBuffer(destinyFile, originFile, make([]byte, 100*1024)); err != nil {
+		return
+	}
+
+	if err = destinyFile.Close(); err != nil {
+		return
+	}
+
+	return nil
 }
 
 func getPathToFile(path string) string {

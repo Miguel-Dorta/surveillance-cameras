@@ -112,7 +112,11 @@ func getImage(dirPath, fileExt string, now time.Time) error {
 	// Save data
 	_, err = io.CopyBuffer(f, resp.Body, make([]byte, 100 * 1024))
 	if err != nil {
-		err = fmt.Errorf("error saving file: %s", err.Error())
+		return fmt.Errorf("error saving file: %s", err.Error())
 	}
-	return err
+
+	if err = f.Close(); err != nil {
+		return err
+	}
+	return nil
 }
