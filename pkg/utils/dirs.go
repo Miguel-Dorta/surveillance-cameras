@@ -1,12 +1,13 @@
-package internal
+package utils
 
 import (
 	"fmt"
 	"io"
 	"os"
 )
- // ForEachInDirectory executes the function provided for each os.FileInfo found in the directory of the path provided.
- // If the function returns an error, the execution will not stop and will be collected in an error slice.
+
+// ForEachInDirectory executes the function provided for each os.FileInfo found in the directory of the path provided.
+// If the function returns an error, the execution will not stop and will be collected in an error slice.
 func ForEachInDirectory(path string, fn func(fi os.FileInfo) error) []error {
 	// Check if path exists, is readable, and is a directory
 	fStat, err := os.Stat(path)
@@ -48,3 +49,4 @@ func ForEachInDirectory(path string, fn func(fi os.FileInfo) error) []error {
 	}
 	return nil
 }
+

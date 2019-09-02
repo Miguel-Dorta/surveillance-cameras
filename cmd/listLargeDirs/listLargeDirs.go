@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
+	"github.com/Miguel-Dorta/surveillance-cameras/pkg/utils"
 	"os"
 )
 
@@ -27,12 +28,14 @@ func main() {
 		}
 	}
 
-	err := internal.ForEachInDirectory(path, func(fi os.FileInfo) error {
+	errs := utils.ForEachInDirectory(path, func(fi os.FileInfo) error {
 		fmt.Printf("%s @ IsDir? %t\n", fi.Name(), fi.IsDir())
 		return nil
 	})
-	if err != nil {
-		fmt.Println(err.Error())
+	if len(errs) != 0 {
+		for _, err := range errs {
+			_, _ = fmt.Fprintln(os.Stderr, err)
+		}
 		os.Exit(1)
 	}
 }
