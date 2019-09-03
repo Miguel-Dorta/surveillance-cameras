@@ -14,7 +14,7 @@ const USAGE = "<path> <days-to-preserve>"
 
 var earliestTimeToPreserve time.Time
 
-func parseDaysToPreserve(dtp string) time.Time {
+func parseDaysToPreserve(dtp string) {
 	daysToPreserve, err := strconv.Atoi(dtp)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Error parsing number %s: %s\nIs it really a number?\n", dtp, err)
