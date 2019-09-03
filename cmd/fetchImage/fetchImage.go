@@ -1,122 +1,148 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
+	"github.com/Miguel-Dorta/surveillance-cameras/pkg/httpClient"
+	"golang.org/x/sys/unix"
 	"io"
-	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"time"
 )
 
-const USAGE = "<camera-name> <user-optional> <password-optional> <url> <path-destiny>"
+var (
+	camName, user, pass, url, path, fileExtension string
+	printVersion                                  bool
+	tomorrow                                      time.Time
+	destinyDir                                    string
+	copyBuffer                                    = make([]byte, 128*1024)
+)
 
-var camName, user, pass, url, path string
+func init() {
+	flag.StringVar(&camName, "camera-name", "", "Sets the camera name/ID")
+	flag.StringVar(&user, "user", "", "Username for login [optional]")
+	flag.StringVar(&pass, "password", "", "Password for login [optional]")
+	flag.StringVar(&url, "url", "", "URL for fetching the images")
+	flag.StringVar(&path, "path", "", "Path for saving the images")
+	flag.BoolVar(&printVersion, "version", false, "Print version and exit")
+	flag.BoolVar(&printVersion, "V", false, "Print version and exit")
+}
 
-func main() {
-	internal.CheckSpecialArgs(os.Args, USAGE)
-	if len(os.Args) == 6 {
-		camName = os.Args[1]
-		user = os.Args[2]
-		pass = os.Args[3]
-		url = os.Args[4]
-		path = os.Args[5]
-	} else if len(os.Args) == 4 {
-		camName = os.Args[1]
-		url = os.Args[2]
-		path = os.Args[3]
-		user = ""
-		pass = ""
-	} else {
-		fmt.Printf("Usage:    %s %s (use -h for help)\n", os.Args[0], USAGE)
+func checkFlags() {
+	if printVersion {
+		fmt.Println(internal.Version)
 		os.Exit(1)
 	}
 
-	var (
-		dirPath string
-		tomorrow int64
-		now time.Time
-		err error
-		fileExt = filepath.Ext(url)
-		seconds = time.Tick(time.Second)
-	)
-	for {
-		<- seconds
-		now = time.Now().UTC()
+	if camName == "" || url == "" || path == "" {
+		_, _ = fmt.Fprintln(os.Stderr, "Arguments \"--camera-name\", \"--url\" and \"--path\" are required")
+		os.Exit(1)
+	}
 
-		// If date changes, update dirPath
-		if now.Unix() >= tomorrow {
-			tomorrow = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).Add(time.Hour * 24).Unix()
-			dirPath = filepath.Join(
-				path,
-				camName,
-				fmt.Sprintf("%04d", now.Year()),
-				fmt.Sprintf("%02d", now.Month()),
-				fmt.Sprintf("%02d", now.Day()),
-			)
+	fileExtension = filepath.Ext(url)
+	if fileExtension == "" {
+		_, _ = fmt.Fprintln(os.Stderr, "WARNING: URL does not contain extension. Files will be saved without it.")
+	}
+}
+
+func main() {
+	checkFlags()
+
+	var (
+		seconds = time.Tick(time.Second)
+		quit = make(chan os.Signal, 2)
+	)
+	signal.Notify(quit, unix.SIGTERM, unix.SIGINT)
+
+	MainLoop: for range seconds {
+		select {
+		case <-quit:
+			break MainLoop
+		default:
 		}
 
-		err = getImage(dirPath, fileExt, now)
-		if err != nil {
-			fmt.Printf("[%04d-%02d-%02d %02d:%02d:%02d] %s\n",
-				now.Year(),
-				now.Month(),
-				now.Day(),
-				now.Hour(),
-				now.Minute(),
-				now.Second(),
-				err.Error(),
-			)
+		requestTime := time.Now()
+		updateDestinyDir(requestTime)
+
+		if err := getImage(getNewFilePath(path, requestTime)); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "error downloading image: %s", err)
 		}
 	}
 }
 
-func getImage(dirPath, fileExt string, now time.Time) error {
-	// Request image
-	client := &http.Client{ Timeout: time.Second}
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return fmt.Errorf("error creating request: %s", err.Error())
+func updateDestinyDir(requestTime time.Time) {
+	// If request time is before tomorrow, do not update destinyDir
+	if requestTime.Before(tomorrow) {
+		return
 	}
-	if user != "" || pass != "" {
-		req.SetBasicAuth(user, pass)
+
+	// Set tomorrow as the first instant of the next day of requestTime
+	tomorrow = time.Date(requestTime.Year(), requestTime.Month(), requestTime.Day(), 0, 0, 0, 0, requestTime.Location())
+	destinyDir = filepath.Join(
+		path,
+		camName,
+		fmt.Sprintf("%04d", requestTime.Year()),
+		fmt.Sprintf("%02d", requestTime.Month()),
+		fmt.Sprintf("%02d", requestTime.Second()),
+	)
+
+	// Get file info (for checking that it exists and it's a dir)
+	stat, err := os.Stat(destinyDir)
+	if err == nil {
+		return // Done, directory exists
 	}
-	resp, err := client.Do(req)
+	if !os.IsNotExist(err) {
+		panic(err) // If unknown error, panic
+	}
+
+	// If it's not dir, panic
+	if !stat.IsDir() {
+		panic("destiny path " + destinyDir + " MUST be a directory")
+	}
+
+	// Create new destinyDir. If cannot create it, panic
+	if err = os.MkdirAll(destinyDir, 0755); err != nil {
+		panic(fmt.Sprintf("cannot create destiny dir in \"%s\": %s", destinyDir, err))
+	}
+}
+
+func getImage(destinyPath string) error {
+	// Get image
+	resp, err := httpClient.GetLogin(url, user, pass)
 	if err != nil {
-		return fmt.Errorf("error doing request: %s", err.Error())
+		return fmt.Errorf("error doing request: %s", err)
 	}
 	defer resp.Body.Close()
 
-	// Create and open file
-	fPath := filepath.Join(dirPath, fmt.Sprintf("%02d-%02d-%02d%s", now.Hour(), now.Minute(), now.Second(), fileExt))
-	f, err := os.Create(fPath)
+	// Create file and open for writing
+	f, err := os.Create(destinyPath)
 	if err != nil {
-		if !os.IsNotExist(err) {
-			return fmt.Errorf("error creating local file: %s", err.Error())
-		}
-
-		// If it fails because there is not container folders, creates them
-		err := os.MkdirAll(dirPath, 0700)
-		if err != nil {
-			return fmt.Errorf("error creating container folder: %s", err.Error())
-		}
-
-		f, err = os.Create(fPath)
-		if err != nil {
-			return fmt.Errorf("error creating local file: %s", err.Error())
-		}
+		return fmt.Errorf("error creating file in \"%s\": %s", destinyPath, err)
 	}
 	defer f.Close()
 
-	// Save data
-	_, err = io.CopyBuffer(f, resp.Body, make([]byte, 100 * 1024))
-	if err != nil {
-		return fmt.Errorf("error saving file: %s", err.Error())
+	// Write file
+	if _, err = io.CopyBuffer(f, resp.Body, copyBuffer); err != nil {
+		return fmt.Errorf("error saving file in \"%s\": %s", destinyPath, err)
 	}
 
+	// Check for errors when closing file
 	if err = f.Close(); err != nil {
-		return err
+		return fmt.Errorf("error closing file \"%s\": %s", destinyPath, err)
 	}
+
 	return nil
+}
+
+func getNewFilePath(saveTo string, requestTime time.Time) string {
+	return filepath.Join(saveTo, fmt.Sprintf(
+		"%02d-%02d-%02d%s",
+		requestTime.Hour(),
+		requestTime.Minute(),
+		requestTime.Second(),
+		fileExtension,
+	))
 }
