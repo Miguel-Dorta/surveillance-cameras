@@ -14,11 +14,11 @@ import (
 )
 
 var (
-	camName, user, pass, url, path, fileExtension string
-	printVersion                                  bool
-	tomorrow                                      time.Time
-	destinyDir                                    string
-	copyBuffer                                    = make([]byte, 128*1024)
+	camName, user, pass, url, path string
+	destinyDir, fileExtension      string
+	printVersion                   bool
+	tomorrow                       time.Time
+	copyBuffer                     = make([]byte, 128*1024)
 )
 
 func init() {
@@ -53,11 +53,12 @@ func main() {
 
 	var (
 		seconds = time.Tick(time.Second)
-		quit = make(chan os.Signal, 2)
+		quit    = make(chan os.Signal, 2)
 	)
 	signal.Notify(quit, unix.SIGTERM, unix.SIGINT)
 
-	MainLoop: for range seconds {
+MainLoop:
+	for range seconds {
 		select {
 		case <-quit:
 			break MainLoop
