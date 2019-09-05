@@ -67,6 +67,8 @@ func iterateYears(path string) []error {
 
 		if yearInt < earliestTimeToPreserve.Year() {
 			return os.RemoveAll(filepath.Join(path, yearDir.Name()))
+		} else if yearInt > earliestTimeToPreserve.Year() {
+			return nil
 		}
 
 		errs = append(errs, iterateMonths(filepath.Join(path, yearDir.Name()))...)
@@ -86,6 +88,8 @@ func iterateMonths(path string) []error {
 
 		if monthInt < int(earliestTimeToPreserve.Month()) {
 			return os.RemoveAll(filepath.Join(path, monthDir.Name()))
+		} else if monthInt > int(earliestTimeToPreserve.Month()) {
+			return nil
 		}
 
 		errs = append(errs, iterateDays(filepath.Join(path, monthDir.Name()))...)
