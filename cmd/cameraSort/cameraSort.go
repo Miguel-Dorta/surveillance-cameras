@@ -12,16 +12,30 @@ import (
 const USAGE = "<origin> <destination>"
 
 func main() {
+	origin, destiny := getArgs()
+
+	errs := sortFiles(origin, destiny)
+
+	// Print errors if found
+	if len(errs) != 0 {
+		for _, err := range errs {
+			_, _ = fmt.Fprintln(os.Stderr, err)
+		}
+		os.Exit(1)
+	}
+}
+
+func getArgs() (origin string, destination string) {
 	internal.CheckSpecialArgs(os.Args, USAGE)
 	if len(os.Args) != 3 {
 		fmt.Printf("Usage:    %s %s (use -h for help)\n", os.Args[0], USAGE)
 		os.Exit(1)
 	}
+	return os.Args[1], os.Args[2]
+}
 
-	origin := os.Args[1]
-	destiny := os.Args[2]
-
-	errs := utils.ForEachInDirectory(origin, func(fi os.FileInfo) error {
+func sortFiles(origin, destiny string) []error {
+	return utils.ForEachInDirectory(origin, func(fi os.FileInfo) error {
 		fiPath := filepath.Join(origin, fi.Name())
 
 		// Omit if it's not regular
@@ -41,11 +55,4 @@ func main() {
 
 		return nil
 	})
-
-	if len(errs) != 0 {
-		for _, err := range errs {
-			_, _ = fmt.Fprintln(os.Stderr, err)
-		}
-		os.Exit(1)
-	}
 }

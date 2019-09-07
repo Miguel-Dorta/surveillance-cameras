@@ -57,6 +57,14 @@ var invalidFiles = []string{
 
 var folder = "C00120190101235959.jpg"
 
+var expectedErrors = map[string]bool{
+	"path /tmp/cameraSort_test/origin/C00120190101235959.jpg is not a file":true,
+	"cannot parse file \"/tmp/cameraSort_test/origin/C003201904O2123456.png\": incorrect format: cannot parse date":true,
+	"cannot parse file \"/tmp/cameraSort_test/origin/hi\": incorrect format: too short":true,
+	"cannot parse file \"/tmp/cameraSort_test/origin/OlderID20190907211734.jpg\": incorrect format: cannot parse date":true,
+	"cannot parse file \"/tmp/cameraSort_test/origin/this-is-not-a-camfile.jpg\": incorrect format: cannot parse date":true,
+}
+
 func createFiles(path string) error {
 	// Create invalid files in path
 	for _, invalidFile := range invalidFiles {
@@ -126,7 +134,7 @@ func Test(t *testing.T) {
 	resultDir := filepath.Join(tmpDir, "result")
 
 	// Create tmp dirs
-	//defer os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir)
 	if err := os.MkdirAll(originDir, 0777); err != nil {
 		t.Fatal("cannot create origin tmp dir")
 	}
@@ -138,9 +146,15 @@ func Test(t *testing.T) {
 		t.Fatalf("error creating files for testing: %s", err)
 	}
 
-	// This is a weird test >.<
-	os.Args = []string{"./cameraSort_test", originDir, resultDir}
-	main()
+	errs := sortFiles(originDir, resultDir)
+	if len(errs) != 0 {
+		for _, err := range errs {
+			if _, exists := expectedErrors[err.Error()]; exists {
+				continue
+			}
+			t.Fatalf("unexpected error: %s", err)
+		}
+	}
 
 	// Check if done correctly
 	if err := checkValidFiles(resultDir); err != nil {
