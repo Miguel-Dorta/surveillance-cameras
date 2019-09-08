@@ -1,41 +1,52 @@
 package main
 
 import (
-	"fmt"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/utils"
+	"log"
 	"os"
 )
 
 const USAGE = "[path-optional]"
 
-func main() {
+var (
+	logOut = log.New(os.Stdout, "", 0)
+	logErr = log.New(os.Stderr, "[ERROR]", 0)
+)
+
+func getArgs() (path string) {
 	internal.CheckSpecialArgs(os.Args, USAGE)
 	if len(os.Args) > 2 {
-		fmt.Printf("Usage:    %s %s (use -h for help)\n", os.Args[0], USAGE)
-		os.Exit(1)
+		logOut.Fatalf("Usage:    %s %s (use -h for help)\n", os.Args[0], USAGE)
 	}
 
-	var path string
 	if len(os.Args) == 2 {
 		path = os.Args[1]
 	} else {
 		var err error
 		path, err = os.Getwd()
 		if err != nil {
-			fmt.Printf("Error getting working directory: %s\nTry using ./listLargeDirs <absolutePath>\n", err.Error())
-			os.Exit(1)
+			logErr.Fatalf("Cannot get working directory: %s\nTry using ./listLargeDirs <absolutePath>\n", err)
 		}
 	}
+	return
+}
 
-	errs := utils.ForEachInDirectory(path, func(fi os.FileInfo) error {
-		fmt.Printf("%s @ IsDir? %t\n", fi.Name(), fi.IsDir())
-		return nil
-	})
+func main() {
+	path := getArgs()
+
+	errs := ls(path)
 	if len(errs) != 0 {
 		for _, err := range errs {
-			_, _ = fmt.Fprintln(os.Stderr, err)
+			logErr.Println(err)
 		}
 		os.Exit(1)
 	}
+}
+
+func ls(path string) []error {
+	return utils.ForEachInDirectory(path, func(fi os.FileInfo) error {
+		logOut.Printf("%s @ IsDir? %t\n", fi.Name(), fi.IsDir())
+		return nil
+	})
 }

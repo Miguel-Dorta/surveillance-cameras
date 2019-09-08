@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"github.com/kami-zh/go-capturer"
+	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -43,10 +43,24 @@ func Test(t *testing.T) {
 	}
 
 	// This is a weird test >.<
-	os.Args = []string{"./listLargeDir_test", tmpDirPath}
-	out := strings.Split(capturer.CaptureOutput(main), "\n")
+	outStr := &strings.Builder{}
+	errStr := &strings.Builder{}
+	logOut = log.New(outStr, "", 0)
+	logErr = log.New(errStr, "", 0)
+	errs := ls(tmpDirPath)
 
-	for _, outLine := range out {
+	// There should be no errors
+	if len(errs) != 0 {
+		for _, err := range errs {
+			t.Error(err)
+		}
+		t.FailNow()
+	}
+	if errStr.String() != "" {
+		t.Fatalf("errors found in output:\n%s", errStr.String())
+	}
+
+	for _, outLine := range strings.Split(outStr.String(), "\n") {
 		if len(outLine) < 26 {
 			continue
 		}
