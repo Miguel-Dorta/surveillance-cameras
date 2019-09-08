@@ -16,8 +16,15 @@ func Test(t *testing.T) {
 	// Not deleted for manual inspection
 
 	createTestFiles(tmpDirPath, t)
-	os.Args = []string{"./rmOldCamera_test", tmpDirPath, "30"}
-	main()
+	parseDaysToPreserve("30")
+	errs := iterateCams(tmpDirPath)
+
+	if len(errs) != 0 {
+		for _, err := range errs {
+			t.Error(err)
+		}
+		t.FailNow()
+	}
 }
 
 func createTestFiles(path string, t *testing.T) {

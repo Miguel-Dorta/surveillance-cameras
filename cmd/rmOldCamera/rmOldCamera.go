@@ -23,15 +23,19 @@ func parseDaysToPreserve(dtp string) {
 	earliestTimeToPreserve = time.Now().AddDate(0, 0, daysToPreserve * -1)
 }
 
-func main() {
+func getArgs() string {
 	internal.CheckSpecialArgs(os.Args, USAGE)
 	if len(os.Args) != 3 {
 		fmt.Printf("Usage:    %s %s (use -h for help)\n", os.Args[0], USAGE)
 		os.Exit(1)
 	}
 
-	path := os.Args[1]
 	parseDaysToPreserve(os.Args[2])
+	return os.Args[1]
+}
+
+func main() {
+	path := getArgs()
 
 	errs := iterateCams(path)
 	if len(errs) != 0 {
