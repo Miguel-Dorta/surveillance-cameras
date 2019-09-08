@@ -32,6 +32,8 @@ func init() {
 }
 
 func checkFlags() {
+	flag.Parse()
+
 	if printVersion {
 		fmt.Println(internal.Version)
 		os.Exit(1)
