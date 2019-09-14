@@ -120,7 +120,7 @@ func getPage(url, user, pass string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting page from URL \"%s\": %s", url, err)
 	}
-	resp.Body.Close()
+	defer resp.Body.Close()
 
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
