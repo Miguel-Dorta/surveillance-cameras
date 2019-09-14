@@ -50,6 +50,8 @@ func parseFlags() {
 }
 
 func main() {
+	parseFlags()
+
 	linkVideos, err := getAllVideos(url, user, pass)
 	if err != nil {
 		logErr.Fatalf("cannot get a list of all videos: %s", err)
