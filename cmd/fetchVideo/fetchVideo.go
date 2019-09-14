@@ -1,13 +1,116 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"github.com/Miguel-Dorta/surveillance-cameras/internal"
+	"github.com/Miguel-Dorta/surveillance-cameras/pkg/cameras"
+	"github.com/Miguel-Dorta/surveillance-cameras/pkg/html"
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/httpClient"
+	"github.com/Miguel-Dorta/surveillance-cameras/pkg/utils"
 	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
 )
 
-func main() {
+const (
+	foldersDir = "/tmpfs/sd/"
+	videoDir = "record000/"
+)
 
+var (
+	url, user, pass, camName, destination string
+	printVersion bool
+	logErr = log.New(os.Stderr, "", 0)
+)
+
+func init() {
+	flag.StringVar(&url, "url", "", "URL for fetching the videos")
+	flag.StringVar(&user, "user", "", "User for login purposes")
+	flag.StringVar(&pass, "password", "", "Password for login purposes")
+	flag.StringVar(&destination, "path", "", "Path for saving the files")
+	flag.StringVar(&camName, "camera-name", "", "Sets the camera name/ID")
+	flag.BoolVar(&printVersion, "version", false, "Print version and exit")
+	flag.BoolVar(&printVersion, "V", false, "Print version and exit")
+}
+
+func parseFlags() {
+	flag.Parse()
+
+	if printVersion {
+		fmt.Println(internal.Version)
+		os.Exit(1)
+	}
+
+	if url == "" || user == "" || pass == "" || camName == "" || destination == "" {
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+}
+
+func main() {
+	linkVideos, err := getAllVideos(url, user, pass)
+	if err != nil {
+		logErr.Fatalf("cannot get a list of all videos: %s", err)
+	}
+	errFound := false
+	for _, link := range linkVideos {
+		pathToSave := getSavingPath(link.Text, camName, destination)
+		if err = utils.GetFileWithLogin(link.HREF, user, pass, pathToSave); err != nil {
+			logErr.Printf("error saving file in path \"%s\": %s", pathToSave, err)
+			errFound = true
+			continue
+		}
+	}
+	if errFound {
+		os.Exit(1)
+	}
+}
+
+func getSavingPath(filename, camName, destination string) string {
+	y, m, d, rest := cameras.GetInfoFromFilenameOWIPCAN45(filename)
+	return filepath.Join(destination, camName, "20" + y, m, d, rest)
+}
+
+func getAllVideos(url, user, pass string) ([]html.A, error) {
+	// Get page
+	page, err := getPage(url + foldersDir, user, pass)
+	if err != nil {
+		return nil, fmt.Errorf("error getting page from URL \"%s\": %s", url, err)
+	}
+
+	// Get folders from page
+	aList := html.GetAList(page)
+	videoList := make([]html.A, 0, len(aList) * 100)
+	for _, a := range aList {
+		if !cameras.IsValidFolderName(a.Text) {
+			continue
+		}
+		videos, err := getVideoLinks(url + a.HREF + videoDir, user, pass)
+		if err != nil {
+			return nil, fmt.Errorf("error getting videos from URL \"%s\": %s", a.HREF, err)
+		}
+		videoList = append(videoList, videos...)
+	}
+
+	return videoList, nil
+}
+
+func getVideoLinks(url, user, pass string) ([]html.A, error) {
+	page, err := getPage(url, user, pass)
+	if err != nil {
+		return nil, fmt.Errorf("error getting page from URL \"%s\": %s", url, err)
+	}
+
+	aList := html.GetAList(page)
+	result := make([]html.A, 0, len(aList))
+	for _, a := range aList {
+		if cameras.IsValidVideoName(a.Text) {
+			result = append(result, a)
+		}
+	}
+	return result, nil
 }
 
 func getPage(url, user, pass string) ([]byte, error) {

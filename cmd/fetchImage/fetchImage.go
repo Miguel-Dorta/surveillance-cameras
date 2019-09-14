@@ -4,9 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
-	"github.com/Miguel-Dorta/surveillance-cameras/pkg/httpClient"
+	"github.com/Miguel-Dorta/surveillance-cameras/pkg/utils"
 	"golang.org/x/sys/unix"
-	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -18,7 +17,6 @@ var (
 	destinyDir, fileExtension      string
 	printVersion                   bool
 	tomorrow                       time.Time
-	copyBuffer                     = make([]byte, 128*1024)
 )
 
 func init() {
@@ -70,7 +68,7 @@ MainLoop:
 		requestTime := time.Now()
 		updateDestinyDir(requestTime)
 
-		if err := getImage(getNewFilePath(path, requestTime)); err != nil {
+		if err := utils.GetFileWithLogin(url, user, pass, getNewFilePath(path, requestTime)); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "error downloading image: %s", err)
 		}
 	}
@@ -110,34 +108,6 @@ func updateDestinyDir(requestTime time.Time) {
 	if err = os.MkdirAll(destinyDir, 0755); err != nil {
 		panic(fmt.Sprintf("cannot create destiny dir in \"%s\": %s", destinyDir, err))
 	}
-}
-
-func getImage(destinyPath string) error {
-	// Get image
-	resp, err := httpClient.GetLogin(url, user, pass)
-	if err != nil {
-		return fmt.Errorf("error doing request: %s", err)
-	}
-	defer resp.Body.Close()
-
-	// Create file and open for writing
-	f, err := os.Create(destinyPath)
-	if err != nil {
-		return fmt.Errorf("error creating file in \"%s\": %s", destinyPath, err)
-	}
-	defer f.Close()
-
-	// Write file
-	if _, err = io.CopyBuffer(f, resp.Body, copyBuffer); err != nil {
-		return fmt.Errorf("error saving file in \"%s\": %s", destinyPath, err)
-	}
-
-	// Check for errors when closing file
-	if err = f.Close(); err != nil {
-		return fmt.Errorf("error closing file \"%s\": %s", destinyPath, err)
-	}
-
-	return nil
 }
 
 func getNewFilePath(saveTo string, requestTime time.Time) string {
