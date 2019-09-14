@@ -59,7 +59,7 @@ func main() {
 	errFound := false
 	for _, link := range linkVideos {
 		pathToSave := getSavingPath(link.Text, camName, destination)
-		if err = utils.GetFileWithLogin(link.HREF, user, pass, pathToSave); err != nil {
+		if err = utils.GetFileWithLogin(url + link.HREF, user, pass, pathToSave); err != nil {
 			logErr.Printf("error saving file in path \"%s\": %s", pathToSave, err)
 			errFound = true
 			continue
