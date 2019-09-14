@@ -10,6 +10,7 @@ import (
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/utils"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -23,6 +24,7 @@ var (
 	url, user, pass, camName, destination string
 	printVersion bool
 	logErr = log.New(os.Stderr, "", 0)
+	httpC = http.Client{}
 )
 
 func init() {
@@ -58,8 +60,11 @@ func main() {
 	}
 	errFound := false
 	for _, link := range linkVideos {
-		pathToSave := getSavingPath(link.Text, camName, destination)
-		if err = utils.GetFileWithLogin(url + link.HREF, user, pass, pathToSave); err != nil {
+		pathToSave, err := createAndGetSavingPath(link.Text, camName, destination)
+		if err != nil {
+			logErr.Fatalf("cannot create parent directories of file \"%s\": %s", link.Text, err)
+		}
+		if err = utils.GetFileWithLogin(url + link.HREF, user, pass, pathToSave, httpC); err != nil {
 			logErr.Printf("error saving file in path \"%s\": %s", pathToSave, err)
 			errFound = true
 			continue
@@ -70,9 +75,13 @@ func main() {
 	}
 }
 
-func getSavingPath(filename, camName, destination string) string {
+func createAndGetSavingPath(filename, camName, destination string) (string, error) {
 	y, m, d, rest := cameras.GetInfoFromFilenameOWIPCAN45(filename)
-	return filepath.Join(destination, camName, "20" + y, m, d, rest)
+	parentDirPath := filepath.Join(destination, camName, "20" + y, m, d)
+	if err := os.MkdirAll(parentDirPath, 0755); err != nil {
+		return "", fmt.Errorf("error creating parent directories: %s", err)
+	}
+	return filepath.Join(parentDirPath, rest), nil
 }
 
 func getAllVideos(url, user, pass string) ([]html.A, error) {
@@ -116,7 +125,7 @@ func getVideoLinks(url, user, pass string) ([]html.A, error) {
 }
 
 func getPage(url, user, pass string) ([]byte, error) {
-	resp, err := httpClient.GetLogin(url, user, pass)
+	resp, err := httpClient.GetLogin(url, user, pass, httpC)
 	if err != nil {
 		return nil, fmt.Errorf("error getting page from URL \"%s\": %s", url, err)
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/utils"
 	"golang.org/x/sys/unix"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -17,6 +18,7 @@ var (
 	destinyDir, fileExtension      string
 	printVersion                   bool
 	tomorrow                       time.Time
+	httpClient = http.Client{Timeout: time.Second}
 )
 
 func init() {
@@ -68,7 +70,7 @@ MainLoop:
 		requestTime := time.Now()
 		updateDestinyDir(requestTime)
 
-		if err := utils.GetFileWithLogin(url, user, pass, getNewFilePath(path, requestTime)); err != nil {
+		if err := utils.GetFileWithLogin(url, user, pass, getNewFilePath(path, requestTime), httpClient); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "error downloading image: %s", err)
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/httpClient"
 	"golang.org/x/sys/unix"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -71,8 +72,8 @@ func Copy(origin, destiny string) error {
 	return nil
 }
 
-func GetFileWithLogin(url, user, pass, destination string) error {
-	resp, err := httpClient.GetLogin(url, user, pass)
+func GetFileWithLogin(url, user, pass, destination string, c http.Client) error {
+	resp, err := httpClient.GetLogin(url, user, pass, c)
 	if err != nil {
 		return fmt.Errorf("error doing http request to URL \"%s\": %s", url, err)
 	}
