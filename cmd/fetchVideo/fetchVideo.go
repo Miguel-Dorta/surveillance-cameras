@@ -34,7 +34,7 @@ func init() {
 	flag.BoolVar(&printVersion, "version", false, "Print version and exit")
 	flag.BoolVar(&printVersion, "V", false, "Print version and exit")
 
-	httpClient.Client.Timeout = time.Hour
+	client.Client.Timeout = time.Hour
 }
 
 func parseFlags() {
@@ -64,7 +64,7 @@ func main() {
 		if err != nil {
 			logErr.Fatalf("cannot create parent directories of file \"%s\": %s", link.Text, err)
 		}
-		if err = httpClient.GetFileWithLogin(url+link.HREF, user, pass, pathToSave); err != nil {
+		if err = client.GetFileWithLogin(url+link.HREF, user, pass, pathToSave); err != nil {
 			logErr.Printf("error saving file in path \"%s\": %s", pathToSave, err)
 			errFound = true
 			continue
@@ -125,7 +125,7 @@ func getVideoLinks(url, user, pass string) ([]html.A, error) {
 }
 
 func getPage(url, user, pass string) ([]byte, error) {
-	resp, err := httpClient.GetWithLogin(url, user, pass)
+	resp, err := client.GetWithLogin(url, user, pass)
 	if err != nil {
 		return nil, fmt.Errorf("error getting page from URL \"%s\": %s", url, err)
 	}

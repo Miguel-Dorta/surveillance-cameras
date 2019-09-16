@@ -28,7 +28,7 @@ func init() {
 	flag.BoolVar(&printVersion, "version", false, "Print version and exit")
 	flag.BoolVar(&printVersion, "V", false, "Print version and exit")
 
-	httpClient.Client.Timeout = time.Second
+	client.Client.Timeout = time.Second
 }
 
 func checkFlags() {
@@ -70,7 +70,7 @@ MainLoop:
 		requestTime := time.Now()
 		updateDestinyDir(requestTime)
 
-		if err := httpClient.GetFileWithLogin(url, user, pass, getNewFilePath(path, requestTime)); err != nil {
+		if err := client.GetFileWithLogin(url, user, pass, getNewFilePath(path, requestTime)); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "error downloading image: %s", err)
 		}
 	}
