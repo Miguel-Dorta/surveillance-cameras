@@ -4,9 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
-	"github.com/Miguel-Dorta/surveillance-cameras/pkg/utils"
+	"github.com/Miguel-Dorta/surveillance-cameras/pkg/httpClient"
 	"golang.org/x/sys/unix"
-	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -18,7 +17,6 @@ var (
 	destinyDir, fileExtension      string
 	printVersion                   bool
 	tomorrow                       time.Time
-	httpClient = http.Client{Timeout: time.Second}
 )
 
 func init() {
@@ -29,6 +27,8 @@ func init() {
 	flag.StringVar(&path, "path", "", "Path for saving the images")
 	flag.BoolVar(&printVersion, "version", false, "Print version and exit")
 	flag.BoolVar(&printVersion, "V", false, "Print version and exit")
+
+	httpClient.Client.Timeout = time.Second
 }
 
 func checkFlags() {
@@ -70,7 +70,7 @@ MainLoop:
 		requestTime := time.Now()
 		updateDestinyDir(requestTime)
 
-		if err := utils.GetFileWithLogin(url, user, pass, getNewFilePath(path, requestTime), httpClient); err != nil {
+		if err := httpClient.GetFileWithLogin(url, user, pass, getNewFilePath(path, requestTime)); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "error downloading image: %s", err)
 		}
 	}

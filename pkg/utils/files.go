@@ -2,10 +2,8 @@ package utils
 
 import (
 	"fmt"
-	"github.com/Miguel-Dorta/surveillance-cameras/pkg/httpClient"
 	"golang.org/x/sys/unix"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -67,30 +65,6 @@ func Copy(origin, destiny string) error {
 	// Close destiny checking for errors
 	if err = fDestiny.Close(); err != nil {
 		return fmt.Errorf("error closing destiny file in \"%s\": %s", destiny, err)
-	}
-
-	return nil
-}
-
-func GetFileWithLogin(url, user, pass, destination string, c http.Client) error {
-	resp, err := httpClient.GetLogin(url, user, pass, c)
-	if err != nil {
-		return fmt.Errorf("error doing http request to URL \"%s\": %s", url, err)
-	}
-	defer resp.Body.Close()
-
-	f, err := os.Create(destination)
-	if err != nil {
-		return fmt.Errorf("error creating file \"%s\": %s", destination, err)
-	}
-	defer f.Close()
-
-	if _, err = io.CopyBuffer(f, resp.Body, copyBuffer); err != nil {
-		return fmt.Errorf("error while saving file \"%s\": %s", destination, err)
-	}
-
-	if err = f.Close(); err != nil {
-		return fmt.Errorf("error closing file \"%s\": %s", destination, err)
 	}
 
 	return nil
