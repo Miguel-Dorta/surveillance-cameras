@@ -9,7 +9,7 @@ import (
 
 const bufferSize = 128 * 1024
 
-var Client *http.Client
+var HttpClient *http.Client
 
 func GetWithLogin(url, user, pass string) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -19,9 +19,8 @@ func GetWithLogin(url, user, pass string) (*http.Response, error) {
 	if user != "" || pass != "" {
 		req.SetBasicAuth(user, pass)
 	}
-	return Client.Do(req)
+	return HttpClient.Do(req)
 }
-
 
 func GetFileWithLogin(url, user, pass, destination string) error {
 	resp, err := GetWithLogin(url, user, pass)

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/cameras"
+	"github.com/Miguel-Dorta/surveillance-cameras/pkg/client"
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/html"
-	"github.com/Miguel-Dorta/surveillance-cameras/pkg/httpClient"
 	"io/ioutil"
 	"log"
 	"os"
@@ -34,7 +34,7 @@ func init() {
 	flag.BoolVar(&printVersion, "version", false, "Print version and exit")
 	flag.BoolVar(&printVersion, "V", false, "Print version and exit")
 
-	client.Client.Timeout = time.Hour
+	client.HttpClient.Timeout = time.Hour
 }
 
 func parseFlags() {

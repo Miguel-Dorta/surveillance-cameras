@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
-	"github.com/Miguel-Dorta/surveillance-cameras/pkg/httpClient"
+	"github.com/Miguel-Dorta/surveillance-cameras/pkg/client"
 	"golang.org/x/sys/unix"
 	"os"
 	"os/signal"
@@ -28,7 +28,7 @@ func init() {
 	flag.BoolVar(&printVersion, "version", false, "Print version and exit")
 	flag.BoolVar(&printVersion, "V", false, "Print version and exit")
 
-	client.Client.Timeout = time.Second
+	client.HttpClient.Timeout = time.Second
 }
 
 func checkFlags() {
