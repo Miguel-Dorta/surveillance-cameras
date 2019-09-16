@@ -76,7 +76,7 @@ func main() {
 }
 
 func createAndGetSavingPath(filename, camName, destination string) (string, error) {
-	y, m, d, rest := cameras.GetInfoFromFilenameOWIPCAN45(filename)
+	y, m, d, rest := cameras.GetInfoFromFilenameOWIPCAM45(filename)
 	parentDirPath := filepath.Join(destination, camName, "20"+y, m, d)
 	if err := os.MkdirAll(parentDirPath, 0755); err != nil {
 		return "", fmt.Errorf("error creating parent directories: %s", err)
