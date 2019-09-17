@@ -63,12 +63,23 @@ func main() {
 
 		// Make parent dirs if they don't exist
 		if err = os.MkdirAll(parentPath, 0755); err != nil {
-			logErr.Fatalf("cannot create parent directories of file \"%s\": %s", link.Text, err)
+			logErr.Printf("cannot create parent directories of file \"%s\": %s\n", link.Text, err)
+			errFound = true
+			continue
+		}
+
+		// Check if file exists. If it does, skip it.
+		if _, err := os.Stat(savingPath); err == nil {
+			continue
+		} else if !os.IsNotExist(err) {
+			logErr.Printf("error found getting info from file \"%s\": %s\n", savingPath, err)
+			errFound = true
+			continue
 		}
 
 		// Download video
 		if err = client.GetFileWithLogin(url+link.HREF, user, pass, savingPath); err != nil {
-			logErr.Printf("error saving file in path \"%s\": %s", savingPath, err)
+			logErr.Printf("error saving file in path \"%s\": %s\n", savingPath, err)
 			errFound = true
 			continue
 		}
