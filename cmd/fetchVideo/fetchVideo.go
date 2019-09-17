@@ -7,7 +7,6 @@ import (
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/cameras"
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/client"
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/html"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -60,12 +59,16 @@ func main() {
 	}
 	errFound := false
 	for _, link := range linkVideos {
-		pathToSave, err := createAndGetSavingPath(link.Text, camName, destination)
-		if err != nil {
+		parentPath, savingPath := getSavingPath(destination, camName, link.Text)
+
+		// Make parent dirs if they don't exist
+		if err = os.MkdirAll(parentPath, 0755); err != nil {
 			logErr.Fatalf("cannot create parent directories of file \"%s\": %s", link.Text, err)
 		}
-		if err = client.GetFileWithLogin(url+link.HREF, user, pass, pathToSave); err != nil {
-			logErr.Printf("error saving file in path \"%s\": %s", pathToSave, err)
+
+		// Download video
+		if err = client.GetFileWithLogin(url+link.HREF, user, pass, savingPath); err != nil {
+			logErr.Printf("error saving file in path \"%s\": %s", savingPath, err)
 			errFound = true
 			continue
 		}
@@ -75,18 +78,18 @@ func main() {
 	}
 }
 
-func createAndGetSavingPath(filename, camName, destination string) (string, error) {
+// getSavingPath returns where the file passed as argument (filename) must be saved (second string returned) as well as
+// the path to its parent directory.
+func getSavingPath(destination, camName, filename string) (parentPath, savingPath string) {
 	y, m, d, rest := cameras.GetInfoFromFilenameOWIPCAM45(filename)
-	parentDirPath := filepath.Join(destination, camName, "20"+y, m, d)
-	if err := os.MkdirAll(parentDirPath, 0755); err != nil {
-		return "", fmt.Errorf("error creating parent directories: %s", err)
-	}
-	return filepath.Join(parentDirPath, rest), nil
+	parentPath = filepath.Join(destination, camName, "20"+y, m, d)
+	return parentPath, filepath.Join(parentPath, rest)
 }
 
+// getAllVideos gets all the A elements that corresponds to videos from all the folders found in the page of the URL provided.
 func getAllVideos(url, user, pass string) ([]html.A, error) {
 	// Get page
-	page, err := getPage(url+foldersDir, user, pass)
+	page, err := client.GetAllWithLogin(url+foldersDir, user, pass)
 	if err != nil {
 		return nil, fmt.Errorf("error getting page from URL \"%s\": %s", url, err)
 	}
@@ -108,8 +111,9 @@ func getAllVideos(url, user, pass string) ([]html.A, error) {
 	return videoList, nil
 }
 
+// getVideoLinks gets all the A elements of the page in the URL provided that contains a valid video name.
 func getVideoLinks(url, user, pass string) ([]html.A, error) {
-	page, err := getPage(url, user, pass)
+	page, err := client.GetAllWithLogin(url, user, pass)
 	if err != nil {
 		return nil, fmt.Errorf("error getting page from URL \"%s\": %s", url, err)
 	}
@@ -122,19 +126,4 @@ func getVideoLinks(url, user, pass string) ([]html.A, error) {
 		}
 	}
 	return result, nil
-}
-
-func getPage(url, user, pass string) ([]byte, error) {
-	resp, err := client.GetWithLogin(url, user, pass)
-	if err != nil {
-		return nil, fmt.Errorf("error getting page from URL \"%s\": %s", url, err)
-	}
-	defer resp.Body.Close()
-
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("error reading page from URL \"%s\": %s", url, err)
-	}
-
-	return data, nil
 }

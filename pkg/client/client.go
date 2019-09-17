@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 )
@@ -24,6 +25,22 @@ func GetWithLogin(url, user, pass string) (*http.Response, error) {
 		req.SetBasicAuth(user, pass)
 	}
 	return HttpClient.Do(req)
+}
+
+// GetAllWithLogin makes a HTTP GET request to the URL using basic auth and returns all the data in the response's body
+func GetAllWithLogin(url, user, pass string) ([]byte, error) {
+	resp, err := GetWithLogin(url, user, pass)
+	if err != nil {
+		return nil, fmt.Errorf("error getting page from URL \"%s\": %s", url, err)
+	}
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading page from URL \"%s\": %s", url, err)
+	}
+
+	return data, nil
 }
 
 // GetFileWithLogin downloads a file from URL to destination using basic auth
