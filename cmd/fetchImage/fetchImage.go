@@ -6,6 +6,7 @@ import (
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/client"
 	"golang.org/x/sys/unix"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -28,7 +29,7 @@ func init() {
 	flag.BoolVar(&printVersion, "version", false, "Print version and exit")
 	flag.BoolVar(&printVersion, "V", false, "Print version and exit")
 
-	client.HttpClient.Timeout = time.Second
+	client.HttpClient = &http.Client{Timeout: time.Second}
 }
 
 func checkFlags() {

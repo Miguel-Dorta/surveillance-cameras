@@ -8,6 +8,7 @@ import (
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/client"
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/html"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -33,7 +34,7 @@ func init() {
 	flag.BoolVar(&printVersion, "version", false, "Print version and exit")
 	flag.BoolVar(&printVersion, "V", false, "Print version and exit")
 
-	client.HttpClient.Timeout = time.Hour
+	client.HttpClient = &http.Client{Timeout: time.Second * 5}
 }
 
 func parseFlags() {
@@ -57,6 +58,9 @@ func main() {
 	if err != nil {
 		logErr.Fatalf("cannot get a list of all videos: %s", err)
 	}
+
+	client.HttpClient.Timeout = time.Hour
+
 	errFound := false
 	for _, link := range linkVideos {
 		parentPath, savingPath := getSavingPath(destination, camName, link.Text)
