@@ -77,7 +77,7 @@ func GetFileWithLogin(url, user, pass, destination string) error {
 // It will check if the connection dropped to 0 bytes during the timeout and, in that case, cancels the download.
 func GetFileWithAuthAndTimeout(url, user, pass, path string, timeout time.Duration) error {
 	ctx, cancel := context.WithCancel(context.Background())
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil) // Will be added in Go 1.13
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("error creating request: %s", err)
 	}
