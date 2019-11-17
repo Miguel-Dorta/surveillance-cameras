@@ -15,3 +15,6 @@ Every second requests the picture provided in the URL, login with the credential
 
 ### fetchVideo.go
 Gets the videos stored in the internal memory of a IP Camera OneWay OWIPCAM45. It requires the camera's address (e.g. http://192.168.1.2), and an user account and password. It will save the videos in PATH/CamName/YYYY/MM/DD/ as hhmmss_hhmmss.extension, being the first "hhmmss" the starting time of the video, and the second the ending time.
+
+### sort_APPIP01WV4
+Reads the files from the first argument (origin) and moves them to destination(second argument)/CamName/YYYY/MM/DD. Is only valid for the pictures taken by the IP Camera Approx APPIP01WV4 that have the following format: "MacAddress00(NAME)_0_YYYYMMDDhhmmss_number.jpg".
