@@ -100,9 +100,9 @@ builds:
       - 5
       - 6
       - 7
-  - id: sort_APPIP01WV4
-    main: cmd/sort_APPIP01WV4/main.go
-    binary: bin/sort_APPIP01WV4
+  - id: APPIP01WV4_sort
+    main: cmd/APPIP01WV4_sort/main.go
+    binary: bin/APPIP01WV4_sort
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - linux
