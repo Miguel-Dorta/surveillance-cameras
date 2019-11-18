@@ -28,14 +28,14 @@ func init() {
 	log.Level = logolang.LevelError
 
 	var verbose, version bool
-	flag.StringVar(&url, "url", "", "USAGE")
-	flag.StringVar(&user, "user", "", "USAGE")
-	flag.StringVar(&pass, "pass", "", "USAGE")
-	flag.IntVar(&numberOfMovements, "movements", 10, "USAGE")
-	flag.BoolVar(&verbose, "verbose", false, "USAGE")
-	flag.BoolVar(&verbose, "v", false, "USAGE")
-	flag.BoolVar(&version, "version", false, "USAGE")
-	flag.BoolVar(&version, "V", false, "USAGE")
+	flag.StringVar(&url, "url", "", "URL of the camera")
+	flag.StringVar(&user, "user", "", "User for login")
+	flag.StringVar(&pass, "pass", "", "Password for login")
+	flag.IntVar(&numberOfMovements, "movements", 10, "Number of rotations")
+	flag.BoolVar(&verbose, "verbose", false, "Verbose output")
+	flag.BoolVar(&verbose, "v", false, "Verbose output")
+	flag.BoolVar(&version, "version", false, "Print version and exit")
+	flag.BoolVar(&version, "V", false, "Print version and exit")
 	flag.Parse()
 
 	if version {
