@@ -2,7 +2,7 @@ env_files:
   github_token: ~/.config/goreleaser/github_token
 builds:
   - id: cameraSort
-    main: cmd/cameraSort/cameraSort.go
+    main: ./cmd/cameraSort
     binary: bin/cameraSort
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
@@ -18,8 +18,8 @@ builds:
       - 6
       - 7
 
-  - id: listLargeDirs
-    main: cmd/listLargeDirs/listLargeDirs.go
+  - id: generic_listLargeDirs
+    main: ./cmd/generic_listLargeDirs
     binary: bin/listLargeDirs
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
@@ -35,9 +35,9 @@ builds:
       - 6
       - 7
 
-  - id: rmOldCamera
-    main: cmd/rmOldCamera/rmOldCamera.go
-    binary: bin/rmOldCamera
+  - id: generic_rmOldCameraData
+    main: ./cmd/generic_rmOldCameraData
+    binary: bin/rmOldCameraData
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - linux
@@ -53,7 +53,7 @@ builds:
       - 7
 
   - id: fetchImage
-    main: cmd/fetchImage/fetchImage.go
+    main: ./cmd/fetchImage
     binary: bin/fetchImage
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
@@ -68,9 +68,10 @@ builds:
       - 5
       - 6
       - 7
-  - id: fetchVideo
-    main: cmd/fetchVideo/fetchVideo.go
-    binary: bin/fetchVideo
+
+  - id: OWIPCAM45_fetchVideo
+    main: ./cmd/OWIPCAM45_fetchVideo
+    binary: bin/OWIPCAM45_fetchVideo
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - linux
@@ -84,9 +85,9 @@ builds:
       - 5
       - 6
       - 7
-  - id: rotateCamera
-    main: cmd/rotateCamera/rotateCamera.go
-    binary: bin/rotateCamera
+  - id: OWIPCAM45_rotate
+    main: ./cmd/OWIPCAM45_rotate
+    binary: bin/OWIPCAM45_rotate
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - linux
@@ -100,8 +101,9 @@ builds:
       - 5
       - 6
       - 7
+
   - id: APPIP01WV4_sort
-    main: cmd/APPIP01WV4_sort/main.go
+    main: ./cmd/APPIP01WV4_sort
     binary: bin/APPIP01WV4_sort
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
@@ -116,5 +118,6 @@ builds:
       - 5
       - 6
       - 7
+
 archive:
   format: tar.gz
