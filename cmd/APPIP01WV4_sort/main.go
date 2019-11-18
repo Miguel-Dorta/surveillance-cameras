@@ -25,7 +25,7 @@ func init() {
 		return fmt.Sprintf("%s: %s", levelName, msg)
 	}
 }
-
+ //TODO write tests
 func main() {
 	origin, destination := getArgs()
 

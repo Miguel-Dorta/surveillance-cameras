@@ -37,6 +37,7 @@ func getArgs() (path string) {
 	return path
 }
 
+//TODO rewrite tests
 func main() {
 	path := getArgs()
 
