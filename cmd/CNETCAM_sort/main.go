@@ -20,14 +20,23 @@ func init() {
 	log = logolang.NewLogger()
 	log.Level = logolang.LevelError
 
-	var verbose, version bool
+	var (
+		pidFile string
+		verbose, version bool
+	)
 	flag.StringVar(&from, "from", "", "Path to read the files")
 	flag.StringVar(&to, "to", "", "Path to put the files")
+	flag.StringVar(&pidFile, "pid", "/run/CNETCAM_sort.pid", "Path to pid file")
 	flag.BoolVar(&verbose, "verbose", false, "Verbose output")
 	flag.BoolVar(&verbose, "v", false, "Verbose output")
 	flag.BoolVar(&version, "version", false, "Print version and exit")
 	flag.BoolVar(&version, "V", false, "Print version and exit")
 	flag.Parse()
+
+	if err := utils.PID(pidFile); err != nil {
+		log.Criticalf("error checking for other instances: %s", err)
+		os.Exit(1)
+	}
 
 	if version {
 		fmt.Println(internal.Version)
