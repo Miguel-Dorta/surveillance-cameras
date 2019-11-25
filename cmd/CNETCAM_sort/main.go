@@ -18,6 +18,7 @@ var (
 
 func init() {
 	log = logolang.NewLogger()
+	log.Color = false
 	log.Level = logolang.LevelError
 
 	var (

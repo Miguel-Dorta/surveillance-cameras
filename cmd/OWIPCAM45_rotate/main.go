@@ -26,6 +26,7 @@ var (
 func init() {
 	client.HttpClient = &http.Client{Timeout:time.Second}
 	log = logolang.NewLogger()
+	log.Color = false
 	log.Level = logolang.LevelError
 
 	var (

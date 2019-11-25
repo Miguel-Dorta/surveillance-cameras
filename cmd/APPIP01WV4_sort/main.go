@@ -23,9 +23,6 @@ var (
 func init() {
 	log = logolang.NewLogger()
 	log.Color = false
-	log.Formatter = func(levelName, msg string) string {
-		return fmt.Sprintf("%s: %s", levelName, msg)
-	}
 	log.Level = logolang.LevelError
 
 	var (

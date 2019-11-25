@@ -16,13 +16,13 @@ var (
 func init() {
 	log = logolang.NewLogger()
 	log.Color = false
-	log.Level = logolang.LevelInfo
 	log.Formatter = func(levelName, msg string) string {
 		if levelName != "ERROR" {
 			return msg
 		}
 		return fmt.Sprintf("[%s] %s", levelName, msg)
 	}
+	log.Level = logolang.LevelInfo
 
 	// Check special args
 	for _, arg := range os.Args[1:] {

@@ -21,6 +21,7 @@ var (
 func init() {
 	client.HttpClient = new(http.Client)
 	log = logolang.NewLogger()
+	log.Color = false
 	log.Level = logolang.LevelError
 
 	var (
