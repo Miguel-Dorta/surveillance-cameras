@@ -8,9 +8,10 @@ import (
 	"os"
 )
 
-const USAGE = "[path-optional]"
-
-var log *logolang.Logger
+var (
+	path string
+	log *logolang.Logger
+)
 
 func init() {
 	log = logolang.NewLogger()
@@ -22,25 +23,41 @@ func init() {
 		}
 		return fmt.Sprintf("[%s] %s", levelName, msg)
 	}
-}
 
-func getArgs() (path string) {
-	internal.CheckSpecialArgs(os.Args, USAGE)
+	// Check special args
+	for _, arg := range os.Args[1:] {
+		switch arg {
+		case "-V":
+			fallthrough
+		case "--version":
+			fmt.Println(internal.Version)
+			os.Exit(0)
+
+		case "-h":
+			fallthrough
+		case "--help":
+			fmt.Printf(
+				"Usage:    %s [path-optional]\n"+
+					"  -h, --help       Show this help text.\n"+
+					"  -V, --version    Display version and exits.\n",
+				os.Args[0])
+			os.Exit(0)
+		}
+	}
+
 	if len(os.Args) > 2 {
-		log.Criticalf("Usage:    %s %s (use -h for help)", os.Args[0], USAGE)
+		log.Criticalf("Usage:    %s [path-optional] (use -h for help)", os.Args[0])
+		os.Exit(0)
 	}
 
 	path = "."
 	if len(os.Args) == 2 {
 		path = os.Args[1]
 	}
-	return path
 }
 
 //TODO rewrite tests
 func main() {
-	path := getArgs()
-
 	errFound := false
 	if err := utils.IterateDir(path, func(f os.FileInfo) {
 		log.Infof("%s @ IsDir? %t", f.Name(), f.IsDir())
