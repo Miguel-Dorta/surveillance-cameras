@@ -6,6 +6,7 @@ import (
 	"github.com/Miguel-Dorta/logolang"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/client"
+	"github.com/Miguel-Dorta/surveillance-cameras/pkg/utils"
 	"net/http"
 	"os"
 	"time"
@@ -27,10 +28,15 @@ func init() {
 	log = logolang.NewLogger()
 	log.Level = logolang.LevelError
 
-	var verbose, version bool
+	var (
+		pidFile, camName string
+		verbose, version bool
+	)
 	flag.StringVar(&url, "url", "", "URL of the camera")
 	flag.StringVar(&user, "user", "", "User for login")
 	flag.StringVar(&pass, "pass", "", "Password for login")
+	flag.StringVar(&camName, "camera-name", "", "Sets the camera name/ID")
+	flag.StringVar(&pidFile, "pid", "/run/OWIPCAM45_rotate_<camera-name>.pid", "Path for pid file")
 	flag.IntVar(&numberOfMovements, "movements", 10, "Number of rotations")
 	flag.BoolVar(&verbose, "verbose", false, "Verbose output")
 	flag.BoolVar(&verbose, "v", false, "Verbose output")
@@ -62,6 +68,19 @@ func init() {
 	}
 	if numberOfMovements < 1 {
 		log.Critical("invalid number of movements")
+		os.Exit(1)
+	}
+	if camName == "" {
+		log.Criticalf("invalid camera name")
+		os.Exit(1)
+	}
+
+	// Check for other instances
+	if pidFile == "/run/OWIPCAM45_rotate_<camera-name>.pid" {
+		pidFile = "/run/OWIPCAM45_rotate_" + camName + ".pid"
+	}
+	if err := utils.PID(pidFile); err != nil {
+		log.Criticalf("error checking for other instances: %s", err)
 		os.Exit(1)
 	}
 }

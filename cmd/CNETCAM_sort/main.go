@@ -33,11 +33,6 @@ func init() {
 	flag.BoolVar(&version, "V", false, "Print version and exit")
 	flag.Parse()
 
-	if err := utils.PID(pidFile); err != nil {
-		log.Criticalf("error checking for other instances: %s", err)
-		os.Exit(1)
-	}
-
 	if version {
 		fmt.Println(internal.Version)
 		os.Exit(0)
@@ -49,6 +44,11 @@ func init() {
 
 	if from == "" || to == "" {
 		flag.PrintDefaults()
+		os.Exit(1)
+	}
+
+	if err := utils.PID(pidFile); err != nil {
+		log.Criticalf("error checking for other instances: %s", err)
 		os.Exit(1)
 	}
 }

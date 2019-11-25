@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/Miguel-Dorta/logolang"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
@@ -14,9 +15,10 @@ type nameParts struct {
 	camName, y, m, d string
 }
 
-const USAGE = "<origin> <destination>"
-
-var log *logolang.Logger
+var (
+	from, to string
+	log *logolang.Logger
+)
 
 func init() {
 	log = logolang.NewLogger()
@@ -24,14 +26,46 @@ func init() {
 	log.Formatter = func(levelName, msg string) string {
 		return fmt.Sprintf("%s: %s", levelName, msg)
 	}
+	log.Level = logolang.LevelError
+
+	var (
+		pidFile string
+		verbose, version bool
+	)
+	flag.StringVar(&from, "from", "", "Path to read the files")
+	flag.StringVar(&to, "to", "", "Path to put the files")
+	flag.StringVar(&pidFile, "pid", "/run/APPIP01WV4_sort.pid", "Path to pid file")
+	flag.BoolVar(&verbose, "verbose", false, "Verbose output")
+	flag.BoolVar(&verbose, "v", false, "Verbose output")
+	flag.BoolVar(&version, "version", false, "Print version and exit")
+	flag.BoolVar(&version, "V", false, "Print version and exit")
+	flag.Parse()
+
+	if version {
+		fmt.Println(internal.Version)
+		os.Exit(0)
+	}
+
+	if verbose {
+		log.Level = logolang.LevelInfo
+	}
+
+	if from == "" || to == "" {
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+
+	if err := utils.PID(pidFile); err != nil {
+		log.Criticalf("error checking for other instances: %s", err)
+		os.Exit(1)
+	}
 }
+
  //TODO write tests
 func main() {
-	origin, destination := getArgs()
-
 	errFound := false
-	if err := utils.IterateDir(origin, func(fi os.FileInfo) {
-		fiPath := filepath.Join(origin, fi.Name())
+	if err := utils.IterateDir(from, func(fi os.FileInfo) {
+		fiPath := filepath.Join(from, fi.Name())
 
 		// check if fi is a file
 		if !fi.Mode().IsRegular() {
@@ -49,29 +83,20 @@ func main() {
 		}
 
 		// copy it to its destination
-		destinyPath := filepath.Join(destination, parts.camName, parts.y, parts.m, parts.d, fi.Name())
+		destinyPath := filepath.Join(to, parts.camName, parts.y, parts.m, parts.d, fi.Name())
 		if err := utils.Move(fiPath, destinyPath); err != nil {
 			log.Errorf("error copying file from %s to %s: %s", fiPath, destinyPath, err)
 			errFound = true
 			return
 		}
 	}); err != nil {
-		log.Errorf("error iterating directory \"%s\": %s", origin, err)
+		log.Errorf("error iterating directory \"%s\": %s", from, err)
 		errFound = true
 	}
 
 	if errFound {
 		os.Exit(1)
 	}
-}
-
-func getArgs() (origin, destiny string){
-	internal.CheckSpecialArgs(os.Args, USAGE)
-	if len(os.Args) != 3 {
-		fmt.Printf("Usage:    %s %s (use -h for help)\n", os.Args[0], USAGE)
-		os.Exit(1)
-	}
-	return os.Args[1], os.Args[2]
 }
 
 // getNameParts gets the camera name, year, month and day from a filename like "MacAddress00(NAME)_0_YYYYMMDDhhmmss_number.jpg"
