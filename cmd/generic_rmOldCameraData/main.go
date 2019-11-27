@@ -45,7 +45,6 @@ func init() {
 	oldestPreserve = time.Now().AddDate(0, 0, days * -1)
 }
 
-// TODO rewrite tests
 func main() {
 	if err := utils.IterateDir(path, func(f os.FileInfo) {
 		if !f.IsDir() {
