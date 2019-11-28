@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
