@@ -81,6 +81,7 @@ func main() {
 
 		// copy it to its destination
 		destinyPath := filepath.Join(to, parts.camName, parts.y, parts.m, parts.d, fi.Name())
+		log.Infof("copying file from %s to %s", fiPath, destinyPath)
 		if err := utils.Move(fiPath, destinyPath); err != nil {
 			log.Errorf("error copying file from %s to %s: %s", fiPath, destinyPath, err)
 			errFound = true

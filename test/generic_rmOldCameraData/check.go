@@ -13,7 +13,7 @@ var exitStatus = 0
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Printf("Usage:    %s <path>", os.Args[0])
+		fmt.Printf("Usage:    %s <path>\n", os.Args[0])
 		os.Exit(1)
 	}
 

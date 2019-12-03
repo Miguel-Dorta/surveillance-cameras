@@ -56,7 +56,6 @@ func init() {
 	}
 }
 
-//TODO rewrite tests
 func main() {
 	errFound := false
 	if err := utils.IterateDir(path, func(f os.FileInfo) {
