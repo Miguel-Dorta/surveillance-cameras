@@ -31,9 +31,9 @@ function test_generic_listLargeDirs() {
   $CHECK_PATH "$STDOUT_PATH" "$FILES_PATH"
 }
 
-test_generic_listLargeDirs || (echo ":: FAIL - generic_listLargeDirs test" && exit 1)
+test_generic_listLargeDirs || (echo ":: FAIL - ${PROGRAM_NAME} test" && exit 1)
 
-echo ":: PASS - generic_listLargeDirs test"
+echo ":: PASS - ${PROGRAM_NAME} test"
 
 # Clean up
 rm -Rf "$TMP_DIR"
