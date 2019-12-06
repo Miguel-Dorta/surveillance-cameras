@@ -1,13 +1,37 @@
 env_files:
   github_token: ~/.config/goreleaser/github_token
+
+before:
+  hooks:
+    - go mod tidy
+    - test/APPIP01WV4_sort/test.sh
+    - test/CNETCAM_sort/test.sh
+    - test/generic_listLargeDirs/test.sh
+    - test/generic_rmOldCameraData/test.sh
+
 builds:
-  - id: cameraSort
-    main: ./cmd/cameraSort
-    binary: bin/cameraSort
+  - id: APPIP01WV4_sort
+    main: ./cmd/APPIP01WV4_sort
+    binary: bin/APPIP01WV4_sort
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - linux
-      - freebsd
+    goarch:
+      - amd64
+      - 386
+      - arm
+      - arm64
+    goarm:
+      - 5
+      - 6
+      - 7
+
+  - id: CNETCAM_sort
+    main: ./cmd/CNETCAM_sort
+    binary: bin/CNETCAM_sort
+    ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
+    goos:
+      - linux
     goarch:
       - amd64
       - 386
@@ -20,11 +44,10 @@ builds:
 
   - id: generic_listLargeDirs
     main: ./cmd/generic_listLargeDirs
-    binary: bin/listLargeDirs
+    binary: bin/generic_listLargeDirs
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - linux
-      - freebsd
     goarch:
       - amd64
       - 386
@@ -37,11 +60,10 @@ builds:
 
   - id: generic_rmOldCameraData
     main: ./cmd/generic_rmOldCameraData
-    binary: bin/rmOldCameraData
+    binary: bin/generic_rmOldCameraData
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - linux
-      - freebsd
     goarch:
       - amd64
       - 386
@@ -52,13 +74,12 @@ builds:
       - 6
       - 7
 
-  - id: fetchImage
-    main: ./cmd/fetchImage
-    binary: bin/fetchImage
+  - id: OWIPCAM4X_fetchImage
+    main: ./cmd/OWIPCAM4X_fetchImage
+    binary: bin/OWIPCAM4X_fetchImage
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - linux
-      - freebsd
     goarch:
       - amd64
       - 386
@@ -75,7 +96,6 @@ builds:
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - linux
-      - freebsd
     goarch:
       - amd64
       - 386
@@ -85,13 +105,13 @@ builds:
       - 5
       - 6
       - 7
+
   - id: OWIPCAM45_rotate
     main: ./cmd/OWIPCAM45_rotate
     binary: bin/OWIPCAM45_rotate
     ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
     goos:
       - linux
-      - freebsd
     goarch:
       - amd64
       - 386
@@ -102,22 +122,17 @@ builds:
       - 6
       - 7
 
-  - id: APPIP01WV4_sort
-    main: ./cmd/APPIP01WV4_sort
-    binary: bin/APPIP01WV4_sort
-    ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
-    goos:
-      - linux
-      - freebsd
-    goarch:
-      - amd64
-      - 386
-      - arm
-      - arm64
-    goarm:
-      - 5
-      - 6
-      - 7
+archives:
+  - id: default
+    builds:
+      - APPIP01WV4_sort
+      - CNETCAM_sort
+      - generic_listLargeDirs
+      - generic_rmOldCameraData
+      - OWIPCAM4X_fetchImage
+      - OWIPCAM45_fetchVideo
+      - OWIPCAM45_rotate
 
-archive:
-  format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+
+    format: tar.gz
