@@ -1,20 +1,23 @@
 # surveillance-cameras
 Scripts for embedded systems processing surveillance cameras' data
 
-### cameraSort.go
-Reads the content of the directory specified in the first argument (origin), takes all the files that starts with CMIDyyyyMMdd (e.g. CAM120180217...) and puts them in destiny(second argument)/CAMID/yyyy/MM/dd
+### APPIP01WV4_sort
+Sorts the pictures taken by a Approx APPIP01WV4.
 
-### rmOldCamera.go
-Read the content of the first argument (path), which is structured like [path/]CAMID/yyyy/MM/dd/ and removes all the folders that are N (second argument) days old
+### CNETCAM_sort
+Sorts the pictures taken by a Conceptronic CNETCAM.
 
-### listLargeDirs.go
-Lists a large directory, not recursively, printing the result with the following format: FILENAME @ IsDir? [true-false]
+### generic_listLargeDirs
+List (unsorted) very large directories.
 
-### fetchImage.go
-Every second requests the picture provided in the URL, login with the credentials (if provided) and saves it in PATH/CamName/YYYY/MM/DD/ as hh-mm-ss.extension
+### generic_rmOldCameraData
+In a path structured like (path/)Name/YYYY/MM/DD, it removes the directories that are older than ~ days \[default=30\].
 
-### fetchVideo.go
-Gets the videos stored in the internal memory of a IP Camera OneWay OWIPCAM45. It requires the camera's address (e.g. http://192.168.1.2), and an user account and password. It will save the videos in PATH/CamName/YYYY/MM/DD/ as hhmmss_hhmmss.extension, being the first "hhmmss" the starting time of the video, and the second the ending time.
+### OWIPCAM4X_fetchImage
+Fetch a picture every second to a OneWay IP Camera (tested with models OWIPCAM43 and OWIPCAM45) and save it in (path/)CameraName/YYYY/MM/DD/hh-mm-ss.ext. 
 
-### sort_APPIP01WV4
-Reads the files from the first argument (origin) and moves them to destination(second argument)/CamName/YYYY/MM/DD. Is only valid for the pictures taken by the IP Camera Approx APPIP01WV4 that have the following format: "MacAddress00(NAME)_0_YYYYMMDDhhmmss_number.jpg".
+### OWIPCAM45_fetchVideo
+Fetch all videos stored in a OneWay OWIPCAM45's internal memory.
+
+### OWIPCAM45_rotate
+Rotates a OneWay OWIPCAM45 from left to right, and from right to left, with ~ rotations \[default=10\].
