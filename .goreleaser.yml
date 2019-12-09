@@ -8,6 +8,7 @@ before:
     - test/CNETCAM_sort/test.sh
     - test/generic_listLargeDirs/test.sh
     - test/generic_rmOldCameraData/test.sh
+    - test/OWIPCAM4X_fetchImage/test.sh
 
 builds:
   - id: APPIP01WV4_sort
