@@ -109,8 +109,8 @@ func fetchImage() {
 		path,
 		camName,
 		strconv.Itoa(now.Year()),
-		strconv.Itoa(int(now.Month())),
-		strconv.Itoa(now.Day()),
+		fmt.Sprintf("%02d", now.Month()),
+		fmt.Sprintf("%02d", now.Day()),
 		fmt.Sprintf("%02d-%02d-%02d%s", now.Hour(), now.Minute(), now.Second(), fileExtension))
 
 	if err := createParentIfNecessary(path); err != nil {
@@ -132,13 +132,14 @@ func createParentIfNecessary(path string) error {
 	if err != nil {
 		return fmt.Errorf("cannot check existence of path \"%s\": %w", parent, err)
 	}
-
+	println("no error. Exists = " + strconv.FormatBool(exists))
 	// If exists, do nothing
 	if exists {
 		return nil
 	}
 
 	// Create parents if they don't exists
+	log.Infof("creating parent dir: %s", parent)
 	if err = os.MkdirAll(parent, 0755); err != nil {
 		return fmt.Errorf("cannot create directory \"%s\": %w", parent, err)
 	}
@@ -154,5 +155,5 @@ func pathExists(path string) (bool, error) {
 	if errors.Is(err, os.ErrNotExist) {
 		return false, nil
 	}
-	return false, nil
+	return false, err
 }
