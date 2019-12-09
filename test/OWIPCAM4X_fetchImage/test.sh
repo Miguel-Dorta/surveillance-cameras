@@ -23,12 +23,14 @@ function test_OWIPCAM4X_fetchImage() {
 
   # Create testdata
   $SERVER_PATH > "$URL_PATH" &
+  SERVER_PID="$!"
   sleep 1
 
   # Execute it
   $BUILD_PATH -camera-name "CamName" -user "USER" -password "PASS" -url "$(cat $URL_PATH)/auto.jpg" -path "$DATA_DIR" -pid "$PID_PATH" &
   sleep 10
   kill -SIGINT "$(cat $PID_PATH)"
+  kill -SIGINT "$SERVER_PID"
 
   # Execute test for checking it
   $CHECK_PATH "$DATA_DIR"
