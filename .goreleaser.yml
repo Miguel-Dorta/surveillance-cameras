@@ -59,6 +59,22 @@ builds:
       - 6
       - 7
 
+  - id: generic_recordVideo
+    main: ./cmd/generic_recordVideo
+    binary: bin/generic_recordVideo
+    ldflags: -X github.com/Miguel-Dorta/surveillance-cameras/internal.Version={{.Version}}
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - 386
+      - arm
+      - arm64
+    goarm:
+      - 5
+      - 6
+      - 7
+
   - id: generic_rmOldCameraData
     main: ./cmd/generic_rmOldCameraData
     binary: bin/generic_rmOldCameraData

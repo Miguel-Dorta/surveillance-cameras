@@ -10,6 +10,9 @@ Sorts the pictures taken by a Conceptronic CNETCAM.
 ### generic_listLargeDirs
 List (unsorted) very large directories.
 
+### generic_recordVideo
+Records video of a IP Camera using RTSP, and stores it in (path/)Name/YYYY/MM/DD as hh-mm-ss.mp4. It requires ffmpeg.
+
 ### generic_rmOldCameraData
 In a path structured like (path/)Name/YYYY/MM/DD, it removes the directories that are older than ~ days \[default=30\].
 
