@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/Miguel-Dorta/logolang"
+	"github.com/Miguel-Dorta/si"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/utils"
 	"os"
@@ -25,13 +26,10 @@ func init() {
 	log.Color = false
 	log.Level = logolang.LevelError
 
-	var (
-		pidFile string
-		verbose, version bool
-	)
+	var verbose, version bool
 	flag.StringVar(&from, "from", "", "Path to read the files")
 	flag.StringVar(&to, "to", "", "Path to put the files")
-	flag.StringVar(&pidFile, "pid", "/run/APPIP01WV4_sort.pid", "Path to pid file")
+	flag.StringVar(&si.Dir, "pid-directory", "/run", "Path to pid file's directory")
 	flag.BoolVar(&verbose, "verbose", false, "Verbose output")
 	flag.BoolVar(&verbose, "v", false, "Verbose output")
 	flag.BoolVar(&version, "version", false, "Print version and exit")
@@ -52,9 +50,18 @@ func init() {
 		os.Exit(1)
 	}
 
-	if err := utils.PID(pidFile); err != nil {
-		log.Criticalf("error checking for other instances: %s", err)
+	if si.Dir == "" {
+		log.Critical("invalid pid directory")
 		os.Exit(1)
+	}
+
+	if err := si.Register("APPIP01WV4_sort"); err != nil {
+		if err == si.ErrOtherInstanceRunning {
+			os.Exit(0)
+		} else {
+			log.Criticalf("error registering instance: %s", err)
+			os.Exit(1)
+		}
 	}
 }
 

@@ -36,14 +36,13 @@ func init() {
 	log.Level = logolang.LevelError
 
 	var (
-		pidDir  string
 		err     error
 		version bool
 	)
 	flag.StringVar(&url, "url", "", "RTSP stream URL (example: rtsp://user:pass@127.0.0.1:554/myStream")
 	flag.StringVar(&camName, "camera-name", "", "Camera ID")
 	flag.StringVar(&path, "path", "", "Path to save")
-	flag.StringVar(&pidDir, "pid-directory", "/run", "Path to pid file's directory")
+	flag.StringVar(&si.Dir, "pid-directory", "/run", "Path to pid file's directory")
 	flag.BoolVar(&verbose, "verbose", false, "Verbose output")
 	flag.BoolVar(&verbose, "v", false, "Verbose output")
 	flag.BoolVar(&version, "version", false, "Print version and exit")
@@ -71,11 +70,11 @@ func init() {
 		logCritical("invalid camera-name")
 	case path:
 		logCritical("invalid path destination")
-	case pidDir:
+	case si.Dir:
 		logCritical("invalid pid path")
 	}
 
-	if err := si.Register("OWIPPB200_downloadVideo-" + camName); err != nil {
+	if err := si.Register("generic_downloadVideo_" + camName); err != nil {
 		if err == si.ErrOtherInstanceRunning {
 			os.Exit(0)
 		} else {

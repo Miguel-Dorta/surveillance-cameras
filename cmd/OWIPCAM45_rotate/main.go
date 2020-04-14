@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/Miguel-Dorta/logolang"
+	"github.com/Miguel-Dorta/si"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/client"
-	"github.com/Miguel-Dorta/surveillance-cameras/pkg/utils"
 	"net/http"
 	"os"
 	"time"
@@ -30,14 +30,14 @@ func init() {
 	log.Level = logolang.LevelError
 
 	var (
-		pidFile, camName string
+		camName string
 		verbose, version bool
 	)
 	flag.StringVar(&url, "url", "", "URL of the camera")
 	flag.StringVar(&user, "user", "", "User for login")
 	flag.StringVar(&pass, "pass", "", "Password for login")
 	flag.StringVar(&camName, "camera-name", "", "Sets the camera name/ID")
-	flag.StringVar(&pidFile, "pid", "/run/OWIPCAM45_rotate_<camera-name>.pid", "Path for pid file")
+	flag.StringVar(&si.Dir, "pid-directory", "/run", "Path to pid file's directory")
 	flag.IntVar(&numberOfMovements, "movements", 10, "Number of rotations")
 	flag.BoolVar(&verbose, "verbose", false, "Verbose output")
 	flag.BoolVar(&verbose, "v", false, "Verbose output")
@@ -75,14 +75,19 @@ func init() {
 		log.Criticalf("invalid camera name")
 		os.Exit(1)
 	}
+	if si.Dir == "" {
+		log.Criticalf("invalid pid dir")
+		os.Exit(1)
+	}
 
 	// Check for other instances
-	if pidFile == "/run/OWIPCAM45_rotate_<camera-name>.pid" {
-		pidFile = "/run/OWIPCAM45_rotate_" + camName + ".pid"
-	}
-	if err := utils.PID(pidFile); err != nil {
-		log.Criticalf("error checking for other instances: %s", err)
-		os.Exit(1)
+	if err := si.Register("OWIPCAM45_rotate_" + camName); err != nil {
+		if err == si.ErrOtherInstanceRunning {
+			os.Exit(0)
+		} else {
+			log.Criticalf("error registering program instance: %s", err)
+			os.Exit(1)
+		}
 	}
 }
 

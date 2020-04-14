@@ -5,9 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/Miguel-Dorta/logolang"
+	"github.com/Miguel-Dorta/si"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
 	"github.com/Miguel-Dorta/surveillance-cameras/pkg/client"
-	"github.com/Miguel-Dorta/surveillance-cameras/pkg/utils"
 	"golang.org/x/sys/unix"
 	"net/http"
 	"os"
@@ -28,16 +28,13 @@ func init() {
 	log.Color = false
 	log.Level = logolang.LevelError
 
-	var (
-		pidFile string
-		verbose, version bool
-	)
+	var verbose, version bool
 	flag.StringVar(&url, "url", "", "URL for fetching images")
 	flag.StringVar(&user, "user", "", "Username for login")
 	flag.StringVar(&pass, "password", "", "Password for login")
 	flag.StringVar(&camName, "camera-name", "", "Sets the camera name/ID")
 	flag.StringVar(&path, "path", "", "Path to save images fetched")
-	flag.StringVar(&pidFile, "pid", "/run/OWIPCAM4X_fetchImage_<camera-name>.pid", "Path to pid file")
+	flag.StringVar(&si.Dir, "pid-directory", "/run", "Path to pid file's directory")
 	flag.BoolVar(&verbose, "verbose", false, "Verbose output")
 	flag.BoolVar(&verbose, "v", false, "Verbose output")
 	flag.BoolVar(&version, "version", false, "Print version and exit")
@@ -70,19 +67,20 @@ func init() {
 	case path:
 		log.Criticalf("invalid path destination")
 		os.Exit(1)
-	case pidFile:
-		log.Criticalf("invalid pid path")
+	case si.Dir:
+		log.Criticalf("invalid pid dir")
 		os.Exit(1)
 	}
 	fileExtension = filepath.Ext(url)
 
 	// Check for other instances running
-	if pidFile == "/run/OWIPCAM4X_fetchImage_<camera-name>.pid" {
-		pidFile = "/run/OWIPCAM4X_fetchImage_" + camName + ".pid"
-	}
-	if err := utils.PID(pidFile); err != nil {
-		log.Criticalf("error checking for other instances: %s", err)
-		os.Exit(1)
+	if err := si.Register("OWIPCAM4X_fetchImage_" + camName); err != nil {
+		if err == si.ErrOtherInstanceRunning {
+			os.Exit(0)
+		} else {
+			log.Criticalf("error registering instance: %s", err)
+			os.Exit(1)
+		}
 	}
 }
 
