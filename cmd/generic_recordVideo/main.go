@@ -21,14 +21,13 @@ type command struct {
 }
 
 var (
-	ip, user, pass, camName, path               string
-	rtspPort                                    int
+	url, camName, path                          string
 	recordingDuration, endingTimeout, retryTime time.Duration
 
 	ffmpegPath string
-	verbose bool
-	log     *logolang.Logger
-	cmd     *command
+	verbose    bool
+	log        *logolang.Logger
+	cmd        *command
 )
 
 func init() {
@@ -38,13 +37,10 @@ func init() {
 
 	var (
 		pidDir  string
-		err error
+		err     error
 		version bool
 	)
-	flag.StringVar(&ip, "ip", "", "Camera IP")
-	flag.IntVar(&rtspPort, "rtsp-port", 554, "Camera RTSP Port")
-	flag.StringVar(&user, "user", "", "Username for login")
-	flag.StringVar(&pass, "password", "", "Password for login")
+	flag.StringVar(&url, "url", "", "RTSP stream URL (example: rtsp://user:pass@127.0.0.1:554/myStream")
 	flag.StringVar(&camName, "camera-name", "", "Camera ID")
 	flag.StringVar(&path, "path", "", "Path to save")
 	flag.StringVar(&pidDir, "pid-directory", "/run", "Path to pid file's directory")
@@ -61,7 +57,7 @@ func init() {
 		fmt.Println(internal.Version)
 		os.Exit(0)
 	}
-	
+
 	ffmpegPath, err = exec.LookPath("ffmpeg")
 	if err != nil {
 		logCritical("dependency ffmpeg not found")
@@ -69,22 +65,14 @@ func init() {
 
 	// Check correct args
 	switch "" {
-	case ip:
-		logCritical("invalid ip")
-	case user:
-		logCritical("invalid username")
-	case pass:
-		logCritical("invalid password")
+	case url:
+		logCritical("invalid URL")
 	case camName:
 		logCritical("invalid camera-name")
 	case path:
 		logCritical("invalid path destination")
 	case pidDir:
 		logCritical("invalid pid path")
-	}
-
-	if rtspPort < 0 || rtspPort > 65535 {
-		logCritical("invalid port")
 	}
 
 	if err := si.Register("OWIPPB200_downloadVideo-" + camName); err != nil {
@@ -114,18 +102,13 @@ func main() {
 }
 
 func start() error {
-	now := time.Now().UTC()
+	dir, filename := getNewFilePath()
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return fmt.Errorf("error creating parent directory: %s", err)
+	}
+
 	ctx, _ := context.WithTimeout(context.Background(), recordingDuration+endingTimeout)
-	execCmd := exec.CommandContext(ctx,
-		ffmpegPath, "-rtsp_transport", "tcp", "-i",
-		fmt.Sprintf("rtsp://%s:%s@%s:%d/11", user, pass, ip, rtspPort),
-		filepath.Join(
-			path,
-			camName,
-			strconv.Itoa(now.Year()),
-			strconv.Itoa(int(now.Month())),
-			strconv.Itoa(now.Day()),
-			fmt.Sprintf("%02d-%02d-%02d.mp4", now.Hour(), now.Minute(), now.Second())))
+	execCmd := exec.CommandContext(ctx, ffmpegPath, "-rtsp_transport", "tcp", "-i", url, filename)
 	if verbose {
 		execCmd.Stderr = os.Stderr
 		execCmd.Stdout = os.Stdout
@@ -146,6 +129,12 @@ func start() error {
 	}
 
 	return nil
+}
+
+func getNewFilePath() (string, string) {
+	now := time.Now().UTC()
+	return filepath.Join(path, camName, strconv.Itoa(now.Year()), strconv.Itoa(int(now.Month())), strconv.Itoa(now.Day())),
+		fmt.Sprintf("%02d-%02d-%02d.mp4", now.Hour(), now.Minute(), now.Second())
 }
 
 func stop() error {
