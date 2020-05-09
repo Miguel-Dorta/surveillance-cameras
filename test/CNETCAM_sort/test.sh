@@ -8,7 +8,7 @@ BUILD_PATH="${TMP_DIR}/build/${PROGRAM_NAME}"
 CHECK_PATH="${TMP_DIR}/build/check"
 GEN_PATH="${TMP_DIR}/build/generate"
 FILES_PATH="${TMP_DIR}/files.json"
-PID_PATH="${TMP_DIR}/pid.pid"
+PID_PATH="${TMP_DIR}"
 
 # Exit in case of error
 set -e
@@ -26,7 +26,7 @@ function test_CNETCAM_sort() {
   $GEN_PATH "$DATA_DIR" "$FILES_PATH"
 
   # Execute it
-  $BUILD_PATH -from "$DATA_DIR" -to "$SORT_DIR" -pid "$PID_PATH"
+  $BUILD_PATH -from "$DATA_DIR" -to "$SORT_DIR" -pid-directory "$PID_PATH"
 
   # Execute test for checking it
   $CHECK_PATH "$SORT_DIR" "$FILES_PATH"

@@ -6,7 +6,7 @@ DATA_DIR="${TMP_DIR}/data"
 BUILD_PATH="${TMP_DIR}/build/${PROGRAM_NAME}"
 CHECK_PATH="${TMP_DIR}/build/check"
 SERVER_PATH="${TMP_DIR}/build/server"
-PID_PATH="${TMP_DIR}/pid.pid"
+PID_PATH="${TMP_DIR}"
 URL_PATH="${TMP_DIR}/url.txt"
 
 # Exit in case of error
@@ -27,9 +27,9 @@ function test_OWIPCAM4X_fetchImage() {
   sleep 1
 
   # Execute it
-  $BUILD_PATH -camera-name "CamName" -user "USER" -password "PASS" -url "$(cat $URL_PATH)/auto.jpg" -path "$DATA_DIR" -pid "$PID_PATH" &
+  $BUILD_PATH -camera-name "CamName" -user "USER" -password "PASS" -url "$(cat $URL_PATH)/auto.jpg" -path "$DATA_DIR" -pid-directory "$PID_PATH" &
   sleep 10
-  kill -SIGINT "$(cat $PID_PATH)"
+  kill -SIGINT "$(cat ${PID_PATH}/OWIPCAM4X_fetchImage_CamName.pid)"
   kill -SIGINT "$SERVER_PID"
 
   # Execute test for checking it
