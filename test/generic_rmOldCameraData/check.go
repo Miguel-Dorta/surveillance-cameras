@@ -93,7 +93,7 @@ func checkMonth(path string, sameYear bool, now time.Time) {
 	}
 
 	for _, m := range actualMonths {
-		checkDay(filepath.Join(path, m), sameYear && m == strconv.Itoa(int(now.Month())), now)
+		checkDay(filepath.Join(path, m), sameYear && m == fmt.Sprintf("%02d", now.Month()), now)
 	}
 }
 

@@ -1,21 +1,25 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/Miguel-Dorta/logolang"
 	"github.com/Miguel-Dorta/surveillance-cameras/internal"
-	"github.com/Miguel-Dorta/surveillance-cameras/pkg/utils"
+	"golang.org/x/sys/unix"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"time"
 )
 
 var (
-	log *logolang.Logger
-	path string
-	oldestPreserve time.Time
+	log        *logolang.Logger
+	path       string
+	days       int
+	exitStatus = 0
 )
 
 func init() {
@@ -23,10 +27,9 @@ func init() {
 	log.Color = false
 	log.Level = logolang.LevelError
 
-	var days int
 	var verbose, version bool
 	flag.StringVar(&path, "path", ".", "Path for removing old camera data")
-	flag.IntVar(&days, "days", 30, "Preserve camera data more recent than ~ days")
+	flag.IntVar(&days, "days", 30, "Preserve ~ days of data")
 	flag.BoolVar(&verbose, "verbose", false, "Verbose output")
 	flag.BoolVar(&verbose, "v", false, "Verbose output")
 	flag.BoolVar(&version, "version", false, "Print version and exit")
@@ -39,64 +42,195 @@ func init() {
 	}
 
 	if verbose {
-		log.Level = logolang.LevelInfo
+		log.Level = logolang.LevelDebug
 	}
-
-	oldestPreserve = time.Now().AddDate(0, 0, days * -1)
 }
 
 func main() {
-	if err := utils.IterateDir(path, func(f os.FileInfo) {
-		if !f.IsDir() {
-			return
-		}
-		iterateYears(filepath.Join(path, f.Name()))
-	}); err != nil {
-		log.Errorf("error listing path \"%s\": %s", path, err)
+	camList, err := ioutil.ReadDir(path)
+	if err != nil {
+		log.Criticalf("error listing path \"%s\": %s", path, err)
+		os.Exit(1)
 	}
+
+	for _, cam := range camList {
+		camPath := filepath.Join(path, cam.Name())
+		if !cam.IsDir() {
+			log.Debugf("skipping file %s: not a directory", camPath)
+			continue
+		}
+		iterateCam(camPath)
+	}
+	os.Exit(exitStatus)
 }
 
-func iterateYears(path string) {
-	iterateDate(path, oldestPreserve.Year(), iterateMonths)
-}
+func iterateCam(path string) {
+	years, err := ioutil.ReadDir(path)
+	if err != nil {
+		log.Errorf("error iterating camera %s: %s", path, err)
+		exitStatus = 1
+		return
+	}
 
-func iterateMonths(path string) {
-	iterateDate(path, int(oldestPreserve.Month()), iterateDays)
-}
+	var dateList []int
+	for _, year := range years {
+		yearPath := filepath.Join(path, year.Name())
+		if !year.IsDir() {
+			log.Debugf("skipping file %s: not a directory", yearPath)
+			continue
+		}
 
-func iterateDays(path string) {
-	iterateDate(path, oldestPreserve.Day(), func(_ string) {})
-}
-
-func iterateDate(path string, compareTo int, doWithCoincidence func(path string)) {
-	if err := utils.IterateDir(path, func(f os.FileInfo) {
-		fPath := filepath.Join(path, f.Name())
-
-		// Parse comparable
-		comparable, err := strconv.Atoi(f.Name())
+		yearInt, err := strconv.Atoi(year.Name())
 		if err != nil {
-			log.Errorf("error parsing date from path \"%s\": %s", fPath, err)
-			return
+			log.Debugf("skipping file %s due to error parsing name into number: %s", yearPath, err)
+			continue
 		}
-
-		// Remove if it's an older comparable
-		if comparable < compareTo {
-			log.Infof("removing %s", fPath)
-			if err := os.RemoveAll(fPath); err != nil {
-				log.Errorf("error removing path \"%s\": %s", fPath, err)
-			}
-			return
-		}
-
-		// Do action if it's the same
-		if comparable == compareTo {
-			doWithCoincidence(fPath)
-			return
-		}
-
-		// Skip if it's a future comparable
-
-	}); err != nil {
-		log.Errorf("error listing path \"%s\": %s", path, err)
+		dateList = append(dateList, iterateYear(yearPath, yearInt)...)
 	}
+
+	log.Debug("sorting dates")
+	sort.Sort(sort.Reverse(sort.IntSlice(dateList)))
+
+	var today = today()
+	for i, date := range dateList {
+		if date < today {
+			log.Debugf("skipping %d days more recent than today", i)
+			dateList = dateList[i:]
+			break
+		}
+	}
+
+	for i := days; i < len(dateList); i++ {
+		y, m, d := getDate(dateList[i])
+		dir := filepath.Join(path, strconv.Itoa(y), fmt.Sprintf("%02d", m), fmt.Sprintf("%02d", d))
+		log.Debugf("removing %s", dir)
+		if err := os.RemoveAll(dir); err != nil {
+			log.Errorf("error removing dir \"%s\": %s", dir, err)
+			exitStatus = 1
+			continue
+		}
+	}
+
+	log.Debug("removing empty directories")
+	rmEmptyDirDeep(path, 2)
+}
+
+func iterateYear(path string, date int) []int {
+	date <<= 4
+
+	months, err := ioutil.ReadDir(path)
+	if err != nil {
+		log.Errorf("error listing dir \"%s\": %s", path, err)
+		exitStatus = 1
+		return nil
+	}
+
+	var list []int
+	for _, month := range months {
+		monthPath := filepath.Join(path, month.Name())
+		if !month.IsDir() {
+			log.Debugf("skipping file %s: not a directory", monthPath)
+			continue
+		}
+
+		monthInt, err := strconv.Atoi(month.Name())
+		if err != nil || monthInt < 1 || monthInt > 12 {
+			log.Debugf("skipping file %s due to error parsing name into number or invalid month: %s", monthPath, err)
+			continue
+		}
+		list = append(list, iterateMonth(monthPath, date|monthInt)...)
+	}
+	return list
+}
+
+func iterateMonth(path string, date int) []int {
+	date <<= 5
+
+	days, err := ioutil.ReadDir(path)
+	if err != nil {
+		log.Errorf("error listing dir \"%s\": %s", path, err)
+		exitStatus = 1
+		return nil
+	}
+
+	list := make([]int, 0, len(days))
+	for _, day := range days {
+		dayPath := filepath.Join(path, day.Name())
+		if !day.IsDir() {
+			log.Debugf("skipping file %s: not a directory", dayPath)
+			continue
+		}
+
+		dayInt, err := strconv.Atoi(day.Name())
+		if err != nil || dayInt < 1 || dayInt > 31 {
+			log.Debugf("skipping file %s due to error parsing name into number or invalid day: %s", dayPath, err)
+			continue
+		}
+		list = append(list, date|dayInt)
+	}
+	return list
+}
+
+func rmEmptyDirDeep(path string, depth int) {
+	if depth < 1 {
+		log.Debugf("trying to remove path %s", path)
+		if err := rmDirIfEmpty(path); err != nil {
+			log.Errorf("error removing dir \"%s\": %s", path, err)
+			exitStatus = 1
+			return
+		}
+		return
+	}
+
+	list, err := ioutil.ReadDir(path)
+	if err != nil {
+		log.Errorf("error listing dir \"%s\": %s", path, err)
+		exitStatus = 1
+		return
+	}
+	for _, child := range list {
+		childPath := filepath.Join(path, child.Name())
+		if !child.IsDir() {
+			log.Debugf("skipping removing file %s: not a directory", childPath)
+			continue
+		}
+		rmEmptyDirDeep(childPath, depth-1)
+	}
+
+	list, err = ioutil.ReadDir(path)
+	if err != nil {
+		log.Errorf("error listing dir \"%s\": %s", path, err)
+		exitStatus = 1
+		return
+	}
+	if len(list) == 0 {
+		if err := rmDirIfEmpty(path); err != nil {
+			log.Errorf("error removing dir \"%s\": %s", path, err)
+			exitStatus = 1
+			return
+		}
+		return
+	}
+}
+
+func rmDirIfEmpty(path string) error {
+	if err := os.Remove(path); err != nil {
+		if errors.Is(err, unix.ENOTEMPTY) || errors.Is(err, unix.EEXIST) {
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
+func today() int {
+	now := time.Now()
+	return (now.Year() << 9) | (int(now.Month()) << 5) | now.Day()
+}
+
+func getDate(i int) (y, m, d int) {
+	y = i >> 9
+	m = (i >> 5) & 0b1111
+	d = i & 0b11111
+	return
 }
