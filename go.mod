@@ -1,9 +1,9 @@
 module github.com/Miguel-Dorta/surveillance-cameras
 
-go 1.13
+go 1.14
 
 require (
 	github.com/Miguel-Dorta/logolang v0.5.1
-	github.com/Miguel-Dorta/si v0.0.0-20200206205832-c3abcfc62378
-	golang.org/x/sys v0.0.0-20191204072324-ce4227a45e2e
+	github.com/Miguel-Dorta/si v1.0.0
+	golang.org/x/sys v0.0.0-20200509044756-6aff5f38e54f
 )

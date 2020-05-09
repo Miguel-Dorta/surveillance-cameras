@@ -2,6 +2,11 @@ github.com/Miguel-Dorta/logolang v0.5.1 h1:drWDDA6xmP1eKOtl9jS24PW1bvWapKmThhoIb
 github.com/Miguel-Dorta/logolang v0.5.1/go.mod h1:ZGbUj/BQ6+M6FmHuXS8T2oZf2vkhRBfbiv1MsN746bI=
 github.com/Miguel-Dorta/si v0.0.0-20200206205832-c3abcfc62378 h1:ppK9byrhnNkruRKSOeMXf76skjPC0X/woJ0oUnv77Zw=
 github.com/Miguel-Dorta/si v0.0.0-20200206205832-c3abcfc62378/go.mod h1:8zEKBhks7lAZvGcUbzMC5tvYHOyvLUpIzXJJCY+1PnE=
+github.com/Miguel-Dorta/si v1.0.0 h1:AinuiXJ3FH0chuabYihWLqkCi366gX5RmlxwbvQbl3c=
+github.com/Miguel-Dorta/si v1.0.0/go.mod h1:+maP9EWvS9SnBif6XySYDeJo5VLb4jGmuQwhRbTGR88=
 golang.org/x/sys v0.0.0-20190621203818-d432491b9138/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191204072324-ce4227a45e2e h1:9vRrk9YW2BTzLP0VCB9ZDjU4cPqkg+IDWL7XgxA1yxQ=
 golang.org/x/sys v0.0.0-20191204072324-ce4227a45e2e/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200409092240-59c9f1ba88fa/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200509044756-6aff5f38e54f h1:mOhmO9WsBaJCNmaZHPtHs9wOcdqdKCjF6OPJlmDM3KI=
+golang.org/x/sys v0.0.0-20200509044756-6aff5f38e54f/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
