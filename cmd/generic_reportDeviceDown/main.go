@@ -76,18 +76,9 @@ func errRetry(err error) {
 }
 
 func sendMessage(errs []error) {
-	form := url.Values{}
-	form.Set("text", createMessage("La comunicación con la cámara " + camID + " ha fallado. Motivos:", errs))
-	form.Set("chat_id", chatID)
-
-	resp, err := httpClient.PostForm("https://api.telegram.org/bot" + botToken + "/sendMessage", form)
-	if err != nil {
-		log.Println("Error sending post request to Telegram: " + err.Error())
-	} else {
-		resp.Body.Close()
-	}
-
+	postTelegram(createMessage("La comunicación con la cámara " + camID + " ha fallado. Motivos:", errs))
 	disconnectedRetry()
+	postTelegram("Conexión reestablecida con cámara " + camID)
 	return
 }
 
@@ -107,6 +98,19 @@ func disconnectedRetry() {
 			return
 		}
 		debugPrintf("retry failed")
+	}
+}
+
+func postTelegram(msg string) {
+	form := url.Values{}
+	form.Set("text", msg)
+	form.Set("chat_id", chatID)
+
+	resp, err := httpClient.PostForm("https://api.telegram.org/bot" + botToken + "/sendMessage", form)
+	if err != nil {
+		log.Println("Error sending post request to Telegram: " + err.Error())
+	} else {
+		resp.Body.Close()
 	}
 }
 
