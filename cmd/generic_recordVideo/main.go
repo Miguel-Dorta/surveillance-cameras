@@ -107,7 +107,7 @@ func start() error {
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), recordingDuration+endingTimeout)
-	execCmd := exec.CommandContext(ctx, ffmpegPath, "-rtsp_transport", "tcp", "-i", url, "-acodec", "copy", "-vcodec", "copy", filename)
+	execCmd := exec.CommandContext(ctx, ffmpegPath, "-rtsp_transport", "tcp", "-i", url, "-acodec", "copy", "-vcodec", "copy", filepath.Join(dir, filename))
 	if verbose {
 		execCmd.Stderr = os.Stderr
 		execCmd.Stdout = os.Stdout
