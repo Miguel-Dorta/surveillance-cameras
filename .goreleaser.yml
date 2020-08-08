@@ -145,6 +145,7 @@ archives:
       - APPIP01WV4_sort
       - CNETCAM_sort
       - generic_listLargeDirs
+      - generic_recordVideo
       - generic_rmOldCameraData
       - OWIPCAM4X_fetchImage
       - OWIPCAM45_fetchVideo
