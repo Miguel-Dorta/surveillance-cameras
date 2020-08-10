@@ -132,7 +132,12 @@ func start() error {
 
 func getNewFilePath() (string, string) {
 	now := time.Now().UTC()
-	return filepath.Join(path, camName, strconv.Itoa(now.Year()), strconv.Itoa(int(now.Month())), strconv.Itoa(now.Day())),
+	return filepath.Join(
+			path,
+			camName,
+			strconv.Itoa(now.Year()),
+			fmt.Sprintf("%02d", now.Month()),
+			fmt.Sprintf("%02d", now.Day())),
 		fmt.Sprintf("%02d-%02d-%02d.mp4", now.Hour(), now.Minute(), now.Second())
 }
 
