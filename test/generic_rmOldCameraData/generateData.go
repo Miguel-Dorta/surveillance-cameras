@@ -13,7 +13,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	for c := 0; c <= 5; c++ {
+	for c := 0; c <= 2; c++ {
 		cPath := filepath.Join(os.Args[1], fmt.Sprintf("C%03d", c))
 
 		for y := 1950; y <= 2100; y++ {

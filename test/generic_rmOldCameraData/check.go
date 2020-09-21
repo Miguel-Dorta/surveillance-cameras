@@ -22,7 +22,7 @@ func main() {
 }
 
 func checkCamera(path string) {
-	expectedCameras := []string{"C000", "C001", "C002", "C003", "C004", "C005"}
+	expectedCameras := []string{"C000", "C001", "C002"}
 
 	actualCameras, err := ListDir(path)
 	if err != nil {
