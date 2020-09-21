@@ -11,7 +11,7 @@ Sorts the pictures taken by a Conceptronic CNETCAM.
 List (unsorted) very large directories.
 
 ### generic_recordVideo
-Records video of a IP Camera using RTSP, and stores it in (path/)Name/YYYY/MM/DD as hh-mm-ss.mp4. It requires ffmpeg and the RTSP stream MUST have codecs that are MP4 compatible.
+Records video of a IP Camera using RTSP, and stores it in (path/)Name/YYYY/MM/DD as hh-mm-ss.mkv. It requires ffmpeg and the RTSP stream MUST have codecs that are MKV compatible.
 
 ### generic_rmOldCameraData
 In a path structured like (path/)Name/YYYY/MM/DD, it removes the directories that are older than ~ days \[default=30\].

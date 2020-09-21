@@ -138,7 +138,7 @@ func getNewFilePath() (string, string) {
 			strconv.Itoa(now.Year()),
 			fmt.Sprintf("%02d", now.Month()),
 			fmt.Sprintf("%02d", now.Day())),
-		fmt.Sprintf("%02d-%02d-%02d.mp4", now.Hour(), now.Minute(), now.Second())
+		fmt.Sprintf("%02d-%02d-%02d.mkv", now.Hour(), now.Minute(), now.Second())
 }
 
 func stop() error {
